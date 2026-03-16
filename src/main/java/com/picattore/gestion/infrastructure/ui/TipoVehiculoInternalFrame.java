@@ -3,13 +3,18 @@ package com.picattore.gestion.infrastructure.ui;
 import com.picattore.gestion.application.TipoVehiculoService;
 import com.picattore.gestion.application.IdiomaService;
 import com.picattore.gestion.domain.TipoVehiculo;
+import com.picattore.gestion.domain.TipoVehiculoTr;
+import com.picattore.gestion.domain.Idioma;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.List;
+import java.util.Optional;
 
-public class TipoVehiculoInternalFrame extends JInternalFrame {
+public class TipoVehiculoInternalFrame extends JInternalFrame implements LanguageChangeListener {
 
     private final TipoVehiculoService tipoVehiculoService;
     private final IdiomaService idiomaService;
@@ -29,7 +34,7 @@ public class TipoVehiculoInternalFrame extends JInternalFrame {
 
     private void inicializarComponentes() {
         // Tabla
-        String[] columnNames = {"ID", "Código"};
+        String[] columnNames = {"ID", "Código", "Nombre", "Descripción"};
         tableModel = new DefaultTableModel(columnNames, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -37,6 +42,20 @@ public class TipoVehiculoInternalFrame extends JInternalFrame {
             }
         };
         table = new JTable(tableModel);
+        
+        // Ocultar la columna ID (índice 0) de la vista
+        table.getColumnModel().removeColumn(table.getColumnModel().getColumn(0));
+
+        // Añadir doble clic para editar
+        table.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    editarSeleccionado();
+                }
+            }
+        });
+
         JScrollPane scrollPane = new JScrollPane(table);
         this.add(scrollPane, BorderLayout.CENTER);
 
@@ -60,8 +79,31 @@ public class TipoVehiculoInternalFrame extends JInternalFrame {
     private void cargarDatos() {
         tableModel.setRowCount(0);
         List<TipoVehiculo> tipos = tipoVehiculoService.obtenerTodosLosTiposVehiculo();
+        
+        // Obtener el idioma principal para mostrar las traducciones correspondientes
+        Optional<Idioma> idiomaPrincipalOpt = idiomaService.obtenerIdiomaPrincipal();
+        int idIdiomaPrincipal = idiomaPrincipalOpt.map(Idioma::getId).orElse(-1);
+
         for (TipoVehiculo tipo : tipos) {
-            tableModel.addRow(new Object[]{tipo.getIdTipoVehiculo(), tipo.getCodigo()});
+            String nombre = "";
+            String descripcion = "";
+
+            if (idIdiomaPrincipal != -1) {
+                for (TipoVehiculoTr tr : tipo.getTraducciones()) {
+                    if (tr.getIdIdioma() == idIdiomaPrincipal) {
+                        nombre = tr.getNombre();
+                        descripcion = tr.getDescripcion();
+                        break;
+                    }
+                }
+            }
+
+            tableModel.addRow(new Object[]{
+                    tipo.getIdTipoVehiculo(), 
+                    tipo.getCodigo(),
+                    nombre,
+                    descripcion
+            });
         }
     }
 
@@ -75,18 +117,20 @@ public class TipoVehiculoInternalFrame extends JInternalFrame {
     private void editarSeleccionado() {
         int selectedRow = table.getSelectedRow();
         if (selectedRow >= 0) {
-            int id = (int) tableModel.getValueAt(selectedRow, 0);
+            int modelRow = table.convertRowIndexToModel(selectedRow);
+            int id = (int) tableModel.getValueAt(modelRow, 0);
             tipoVehiculoService.obtenerTipoVehiculoPorId(id).ifPresent(this::abrirDialogo);
         } else {
-            JOptionPane.showMessageDialog(this, "Seleccione un tipo de vehículo para editar.");
+            // No mostrar mensaje si no hay selección (doble clic en vacío)
         }
     }
 
     private void eliminarSeleccionado() {
         int selectedRow = table.getSelectedRow();
         if (selectedRow >= 0) {
-            int id = (int) tableModel.getValueAt(selectedRow, 0);
-            String codigo = (String) tableModel.getValueAt(selectedRow, 1);
+            int modelRow = table.convertRowIndexToModel(selectedRow);
+            int id = (int) tableModel.getValueAt(modelRow, 0);
+            String codigo = (String) tableModel.getValueAt(modelRow, 1);
 
             int confirm = JOptionPane.showConfirmDialog(this,
                     "¿Está seguro de eliminar el tipo de vehículo '" + codigo + "'?",
@@ -106,5 +150,10 @@ public class TipoVehiculoInternalFrame extends JInternalFrame {
         } else {
             JOptionPane.showMessageDialog(this, "Seleccione un tipo de vehículo para borrar.");
         }
+    }
+
+    @Override
+    public void onLanguageChanged() {
+        cargarDatos();
     }
 }

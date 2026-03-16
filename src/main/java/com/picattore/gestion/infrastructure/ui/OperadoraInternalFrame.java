@@ -2,24 +2,29 @@ package com.picattore.gestion.infrastructure.ui;
 
 import com.picattore.gestion.application.OperadoraService;
 import com.picattore.gestion.application.PaisService;
+import com.picattore.gestion.application.IdiomaService;
 import com.picattore.gestion.domain.Operadora;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.List;
 
 public class OperadoraInternalFrame extends JInternalFrame {
 
     private final OperadoraService operadoraService;
     private final PaisService paisService;
+    private final IdiomaService idiomaService;
     private JTable table;
     private DefaultTableModel tableModel;
 
-    public OperadoraInternalFrame(OperadoraService operadoraService, PaisService paisService) {
+    public OperadoraInternalFrame(OperadoraService operadoraService, PaisService paisService, IdiomaService idiomaService) {
         super("Gestión de Operadoras", true, true, true, true);
         this.operadoraService = operadoraService;
         this.paisService = paisService;
+        this.idiomaService = idiomaService;
         this.setSize(800, 600);
         this.setLayout(new BorderLayout());
 
@@ -37,6 +42,20 @@ public class OperadoraInternalFrame extends JInternalFrame {
             }
         };
         table = new JTable(tableModel);
+        
+        // Ocultar la columna ID (índice 0) de la vista
+        table.getColumnModel().removeColumn(table.getColumnModel().getColumn(0));
+        
+        // Añadir doble clic para editar
+        table.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    editarSeleccionado();
+                }
+            }
+        });
+
         JScrollPane scrollPane = new JScrollPane(table);
         this.add(scrollPane, BorderLayout.CENTER);
 
@@ -72,7 +91,7 @@ public class OperadoraInternalFrame extends JInternalFrame {
     }
 
     private void abrirDialogo(Operadora operadora) {
-        OperadoraDialog dialog = new OperadoraDialog((Frame) SwingUtilities.getWindowAncestor(this), operadoraService, paisService, operadora);
+        OperadoraDialog dialog = new OperadoraDialog((Frame) SwingUtilities.getWindowAncestor(this), operadoraService, paisService, idiomaService, operadora);
         dialog.setLocationRelativeTo(this);
         dialog.setVisible(true);
         cargarDatos();
@@ -81,18 +100,21 @@ public class OperadoraInternalFrame extends JInternalFrame {
     private void editarSeleccionado() {
         int selectedRow = table.getSelectedRow();
         if (selectedRow >= 0) {
-            int id = (int) tableModel.getValueAt(selectedRow, 0);
+            // Convertir índice de vista a modelo porque la columna ID está oculta
+            int modelRow = table.convertRowIndexToModel(selectedRow);
+            int id = (int) tableModel.getValueAt(modelRow, 0);
             operadoraService.obtenerOperadoraPorId(id).ifPresent(this::abrirDialogo);
         } else {
-            JOptionPane.showMessageDialog(this, "Seleccione una operadora para editar.");
+            // No mostrar mensaje si no hay selección
         }
     }
 
     private void eliminarSeleccionado() {
         int selectedRow = table.getSelectedRow();
         if (selectedRow >= 0) {
-            int id = (int) tableModel.getValueAt(selectedRow, 0);
-            String nombre = (String) tableModel.getValueAt(selectedRow, 2);
+            int modelRow = table.convertRowIndexToModel(selectedRow);
+            int id = (int) tableModel.getValueAt(modelRow, 0);
+            String nombre = (String) tableModel.getValueAt(modelRow, 2); // Nombre está en índice 2 del modelo
 
             int confirm = JOptionPane.showConfirmDialog(this,
                     "¿Está seguro de eliminar la operadora '" + nombre + "'?",

@@ -26,7 +26,7 @@ public class EsquemaPinturaInternalFrame extends JInternalFrame implements Langu
         this.paisService = paisService;
         this.operadoraService = operadoraService;
         this.idiomaService = idiomaService;
-        this.setSize(800, 600);
+        this.setSize(1000, 600); // Aumento el ancho para ver mejor los datos
         this.setLayout(new BorderLayout());
 
         inicializarComponentes();
@@ -85,27 +85,33 @@ public class EsquemaPinturaInternalFrame extends JInternalFrame implements Langu
         int idIdiomaPrincipal = idiomaPrincipalOpt.map(Idioma::getId).orElse(-1);
 
         for (EsquemaPintura esquema : esquemas) {
-            String nombreMostrado = esquema.getNombre();
-            
-            // Intentar mostrar la descripción traducida en lugar del nombre genérico si existe
-            if (idIdiomaPrincipal != -1) {
-                for (EsquemaPinturaTr tr : esquema.getTraducciones()) {
-                    if (tr.getIdIdioma() == idIdiomaPrincipal && tr.getDescripcion() != null && !tr.getDescripcion().isEmpty()) {
-                        nombreMostrado = tr.getDescripcion();
-                        break;
+            // Nombre del país traducido
+            String nombrePais = "Desconocido";
+            Optional<Pais> paisOpt = paisService.obtenerPaisPorId(esquema.getIdPais());
+            if (paisOpt.isPresent()) {
+                Pais pais = paisOpt.get();
+                nombrePais = pais.getCodigo(); // Fallback
+                if (idIdiomaPrincipal != -1) {
+                    for (PaisTr tr : pais.getTraducciones()) {
+                        if (tr.getIdIdioma() == idIdiomaPrincipal) {
+                            nombrePais = tr.getNombre();
+                            break;
+                        }
                     }
                 }
             }
 
-            // Obtener nombres de país y operadora (esto podría optimizarse con un mapa o cache)
-            String nombrePais = paisService.obtenerPaisPorId(esquema.getIdPais()).map(Pais::getCodigo).orElse("Desconocido");
+            // Nombre de la operadora (código por defecto)
             String nombreOperadora = operadoraService.obtenerOperadoraPorId(esquema.getIdOperadora()).map(Operadora::getCodigo).orElse("Desconocida");
+
+            // Nombre del esquema (campo nombre, NO descripción)
+            String nombreEsquema = esquema.getNombre();
 
             tableModel.addRow(new Object[]{
                     esquema.getIdEsquemaPintura(),
                     nombrePais,
                     nombreOperadora,
-                    nombreMostrado,
+                    nombreEsquema,
                     esquema.getAnioInicio(),
                     esquema.getAnioFin()
             });
@@ -135,7 +141,7 @@ public class EsquemaPinturaInternalFrame extends JInternalFrame implements Langu
         if (selectedRow >= 0) {
             int modelRow = table.convertRowIndexToModel(selectedRow);
             int id = (int) tableModel.getValueAt(modelRow, 0);
-            String nombre = (String) tableModel.getValueAt(modelRow, 3); // Nombre mostrado
+            String nombre = (String) tableModel.getValueAt(modelRow, 3);
 
             int confirm = JOptionPane.showConfirmDialog(this,
                     "¿Está seguro de eliminar el esquema '" + nombre + "'?",

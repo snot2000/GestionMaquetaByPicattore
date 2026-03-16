@@ -11,7 +11,7 @@ public class Operadora {
     private Integer anioCreacion;
     private Integer anioDisolucion;
 
-    private List<Integer> paisesIds;
+    private Integer idPais; // Un solo país
     private List<Integer> predecesorasIds;
     private List<Integer> sucesorasIds;
 
@@ -21,7 +21,6 @@ public class Operadora {
         this.informacion = informacion;
         this.anioCreacion = anioCreacion;
         this.anioDisolucion = anioDisolucion;
-        this.paisesIds = new ArrayList<>();
         this.predecesorasIds = new ArrayList<>();
         this.sucesorasIds = new ArrayList<>();
     }
@@ -44,8 +43,8 @@ public class Operadora {
     public void setAnioCreacion(Integer anioCreacion) { this.anioCreacion = anioCreacion; }
     public Integer getAnioDisolucion() { return anioDisolucion; }
     public void setAnioDisolucion(Integer anioDisolucion) { this.anioDisolucion = anioDisolucion; }
-    public List<Integer> getPaisesIds() { return paisesIds; }
-    public void setPaisesIds(List<Integer> paisesIds) { this.paisesIds = paisesIds; }
+    public Integer getIdPais() { return idPais; }
+    public void setIdPais(Integer idPais) { this.idPais = idPais; }
     public List<Integer> getPredecesorasIds() { return predecesorasIds; }
     public void setPredecesorasIds(List<Integer> predecesorasIds) { this.predecesorasIds = predecesorasIds; }
     public List<Integer> getSucesorasIds() { return sucesorasIds; }

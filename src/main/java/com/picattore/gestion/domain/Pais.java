@@ -46,4 +46,11 @@ public class Pais {
     public void addTraduccion(PaisTr traduccion) {
         this.traducciones.add(traduccion);
     }
+
+    @Override
+    public String toString() {
+        // El renderer de la UI se encargará de mostrar el nombre traducido.
+        // Esto es un fallback y útil para depuración.
+        return codigo != null ? codigo : "País sin código";
+    }
 }

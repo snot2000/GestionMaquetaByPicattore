@@ -14,9 +14,9 @@ public class OperadoraService {
     }
 
     public void crearOperadora(String codigo, String nombre, String informacion, Integer anioCreacion, Integer anioDisolucion,
-                               List<Integer> paisesIds, List<Integer> predecesorasIds, List<Integer> sucesorasIds) {
+                               Integer idPais, List<Integer> predecesorasIds, List<Integer> sucesorasIds) {
         Operadora nuevaOperadora = new Operadora(codigo, nombre, informacion, anioCreacion, anioDisolucion);
-        nuevaOperadora.setPaisesIds(paisesIds);
+        nuevaOperadora.setIdPais(idPais);
         nuevaOperadora.setPredecesorasIds(predecesorasIds);
         nuevaOperadora.setSucesorasIds(sucesorasIds);
         operadoraRepository.guardar(nuevaOperadora);
@@ -31,7 +31,7 @@ public class OperadoraService {
     }
 
     public void actualizarOperadora(int id, String codigo, String nombre, String informacion, Integer anioCreacion, Integer anioDisolucion,
-                                    List<Integer> paisesIds, List<Integer> predecesorasIds, List<Integer> sucesorasIds) {
+                                    Integer idPais, List<Integer> predecesorasIds, List<Integer> sucesorasIds) {
         Optional<Operadora> operadoraExistente = operadoraRepository.buscarPorId(id);
         if (operadoraExistente.isPresent()) {
             Operadora operadora = operadoraExistente.get();
@@ -40,7 +40,7 @@ public class OperadoraService {
             operadora.setInformacion(informacion);
             operadora.setAnioCreacion(anioCreacion);
             operadora.setAnioDisolucion(anioDisolucion);
-            operadora.setPaisesIds(paisesIds);
+            operadora.setIdPais(idPais);
             operadora.setPredecesorasIds(predecesorasIds);
             operadora.setSucesorasIds(sucesorasIds);
             operadoraRepository.actualizar(operadora);

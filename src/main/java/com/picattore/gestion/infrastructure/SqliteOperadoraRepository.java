@@ -12,7 +12,7 @@ public class SqliteOperadoraRepository implements OperadoraRepository {
 
     @Override
     public void guardar(Operadora operadora) {
-        String sql = "INSERT INTO Operadoras(codigo, nombre, informacion, anio_creacion, anio_disolucion) VALUES(?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO Operadoras(codigo, nombre, informacion, anio_creacion, anio_disolucion, id_pais) VALUES(?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = Database.conectar()) {
             conn.setAutoCommit(false);
@@ -22,6 +22,7 @@ public class SqliteOperadoraRepository implements OperadoraRepository {
                 pstmt.setString(3, operadora.getInformacion());
                 pstmt.setObject(4, operadora.getAnioCreacion());
                 pstmt.setObject(5, operadora.getAnioDisolucion());
+                pstmt.setObject(6, operadora.getIdPais());
                 pstmt.executeUpdate();
 
                 try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
@@ -41,18 +42,7 @@ public class SqliteOperadoraRepository implements OperadoraRepository {
     }
 
     private void guardarRelaciones(Operadora operadora, Connection conn) throws SQLException {
-        // Guardar Países
-        String sqlPaises = "INSERT INTO Operadoras_Paises(id_operadora, id_pais) VALUES(?, ?)";
-        try (PreparedStatement pstmt = conn.prepareStatement(sqlPaises)) {
-            for (Integer idPais : operadora.getPaisesIds()) {
-                pstmt.setInt(1, operadora.getIdOperadora());
-                pstmt.setInt(2, idPais);
-                pstmt.addBatch();
-            }
-            pstmt.executeBatch();
-        }
-
-        // Guardar Predecesoras (id_predecesora = id_lista, id_sucesora = id_actual)
+        // Guardar Predecesoras
         String sqlPredecesoras = "INSERT INTO Operadoras_Relacion(id_predecesora, id_sucesora) VALUES(?, ?)";
         try (PreparedStatement pstmt = conn.prepareStatement(sqlPredecesoras)) {
             for (Integer idPredecesora : operadora.getPredecesorasIds()) {
@@ -63,7 +53,7 @@ public class SqliteOperadoraRepository implements OperadoraRepository {
             pstmt.executeBatch();
         }
 
-        // Guardar Sucesoras (id_predecesora = id_actual, id_sucesora = id_lista)
+        // Guardar Sucesoras
         String sqlSucesoras = "INSERT INTO Operadoras_Relacion(id_predecesora, id_sucesora) VALUES(?, ?)";
         try (PreparedStatement pstmt = conn.prepareStatement(sqlSucesoras)) {
             for (Integer idSucesora : operadora.getSucesorasIds()) {
@@ -77,7 +67,7 @@ public class SqliteOperadoraRepository implements OperadoraRepository {
 
     @Override
     public Optional<Operadora> buscarPorId(int id) {
-        String sql = "SELECT id_operadora, codigo, nombre, informacion, anio_creacion, anio_disolucion FROM Operadoras WHERE id_operadora = ?";
+        String sql = "SELECT id_operadora, codigo, nombre, informacion, anio_creacion, anio_disolucion, id_pais FROM Operadoras WHERE id_operadora = ?";
         Operadora operadora = null;
 
         try (Connection conn = Database.conectar();
@@ -94,6 +84,7 @@ public class SqliteOperadoraRepository implements OperadoraRepository {
                         (Integer) rs.getObject("anio_creacion"),
                         (Integer) rs.getObject("anio_disolucion")
                 );
+                operadora.setIdPais((Integer) rs.getObject("id_pais"));
                 cargarRelaciones(operadora, conn);
             }
         } catch (SQLException e) {
@@ -103,17 +94,7 @@ public class SqliteOperadoraRepository implements OperadoraRepository {
     }
 
     private void cargarRelaciones(Operadora operadora, Connection conn) throws SQLException {
-        // Cargar Países
-        String sqlPaises = "SELECT id_pais FROM Operadoras_Paises WHERE id_operadora = ?";
-        try (PreparedStatement pstmt = conn.prepareStatement(sqlPaises)) {
-            pstmt.setInt(1, operadora.getIdOperadora());
-            ResultSet rs = pstmt.executeQuery();
-            while (rs.next()) {
-                operadora.getPaisesIds().add(rs.getInt("id_pais"));
-            }
-        }
-
-        // Cargar Predecesoras (donde id_sucesora es la actual)
+        // Cargar Predecesoras
         String sqlPredecesoras = "SELECT id_predecesora FROM Operadoras_Relacion WHERE id_sucesora = ?";
         try (PreparedStatement pstmt = conn.prepareStatement(sqlPredecesoras)) {
             pstmt.setInt(1, operadora.getIdOperadora());
@@ -123,7 +104,7 @@ public class SqliteOperadoraRepository implements OperadoraRepository {
             }
         }
 
-        // Cargar Sucesoras (donde id_predecesora es la actual)
+        // Cargar Sucesoras
         String sqlSucesoras = "SELECT id_sucesora FROM Operadoras_Relacion WHERE id_predecesora = ?";
         try (PreparedStatement pstmt = conn.prepareStatement(sqlSucesoras)) {
             pstmt.setInt(1, operadora.getIdOperadora());
@@ -136,7 +117,7 @@ public class SqliteOperadoraRepository implements OperadoraRepository {
 
     @Override
     public List<Operadora> buscarTodas() {
-        String sql = "SELECT id_operadora, codigo, nombre, informacion, anio_creacion, anio_disolucion FROM Operadoras";
+        String sql = "SELECT id_operadora, codigo, nombre, informacion, anio_creacion, anio_disolucion, id_pais FROM Operadoras";
         List<Operadora> lista = new ArrayList<>();
 
         try (Connection conn = Database.conectar();
@@ -152,7 +133,8 @@ public class SqliteOperadoraRepository implements OperadoraRepository {
                         (Integer) rs.getObject("anio_creacion"),
                         (Integer) rs.getObject("anio_disolucion")
                 );
-                cargarRelaciones(operadora, conn);
+                operadora.setIdPais((Integer) rs.getObject("id_pais"));
+                // No cargamos relaciones en la lista general para optimizar
                 lista.add(operadora);
             }
         } catch (SQLException e) {
@@ -163,7 +145,7 @@ public class SqliteOperadoraRepository implements OperadoraRepository {
 
     @Override
     public void actualizar(Operadora operadora) {
-        String sql = "UPDATE Operadoras SET codigo = ?, nombre = ?, informacion = ?, anio_creacion = ?, anio_disolucion = ? WHERE id_operadora = ?";
+        String sql = "UPDATE Operadoras SET codigo = ?, nombre = ?, informacion = ?, anio_creacion = ?, anio_disolucion = ?, id_pais = ? WHERE id_operadora = ?";
 
         try (Connection conn = Database.conectar()) {
             conn.setAutoCommit(false);
@@ -173,7 +155,8 @@ public class SqliteOperadoraRepository implements OperadoraRepository {
                 pstmt.setString(3, operadora.getInformacion());
                 pstmt.setObject(4, operadora.getAnioCreacion());
                 pstmt.setObject(5, operadora.getAnioDisolucion());
-                pstmt.setInt(6, operadora.getIdOperadora());
+                pstmt.setObject(6, operadora.getIdPais());
+                pstmt.setInt(7, operadora.getIdOperadora());
                 pstmt.executeUpdate();
 
                 eliminarRelaciones(operadora.getIdOperadora(), conn);
@@ -190,12 +173,6 @@ public class SqliteOperadoraRepository implements OperadoraRepository {
     }
 
     private void eliminarRelaciones(int idOperadora, Connection conn) throws SQLException {
-        String sqlPaises = "DELETE FROM Operadoras_Paises WHERE id_operadora = ?";
-        try (PreparedStatement pstmt = conn.prepareStatement(sqlPaises)) {
-            pstmt.setInt(1, idOperadora);
-            pstmt.executeUpdate();
-        }
-
         // Eliminar donde es sucesora (borrar predecesoras)
         String sqlPredecesoras = "DELETE FROM Operadoras_Relacion WHERE id_sucesora = ?";
         try (PreparedStatement pstmt = conn.prepareStatement(sqlPredecesoras)) {

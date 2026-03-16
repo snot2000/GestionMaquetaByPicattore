@@ -13,8 +13,8 @@ public class IdiomaService {
         this.idiomaRepository = idiomaRepository;
     }
 
-    public void crearIdioma(String codigo, String nombre) {
-        Idioma nuevoIdioma = new Idioma(codigo, nombre);
+    public void crearIdioma(String codigo, String nombre, boolean principal) {
+        Idioma nuevoIdioma = new Idioma(codigo, nombre, principal);
         idiomaRepository.guardar(nuevoIdioma);
     }
 
@@ -26,21 +26,26 @@ public class IdiomaService {
         return idiomaRepository.buscarPorId(id);
     }
 
-    public void actualizarIdioma(int id, String codigo, String nombre) {
+    public Optional<Idioma> obtenerIdiomaPrincipal() {
+        return idiomaRepository.buscarTodos().stream()
+                .filter(Idioma::isPrincipal)
+                .findFirst();
+    }
+
+    public void actualizarIdioma(int id, String codigo, String nombre, boolean principal) {
         Optional<Idioma> idiomaExistente = idiomaRepository.buscarPorId(id);
         if (idiomaExistente.isPresent()) {
             Idioma idioma = idiomaExistente.get();
             idioma.setCodigo(codigo);
             idioma.setNombre(nombre);
+            idioma.setPrincipal(principal);
             idiomaRepository.actualizar(idioma);
         } else {
-            // Manejar el caso de que no exista, lanzar excepción, etc.
             System.err.println("Idioma con ID " + id + " no encontrado.");
         }
     }
 
     public void eliminarIdioma(int id) {
-        // Aquí podrías añadir la lógica de verificación de referencias antes de eliminar
         idiomaRepository.eliminar(id);
     }
 }

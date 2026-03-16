@@ -53,6 +53,10 @@ public class PaisDialog extends JDialog {
             }
         };
         tableTraducciones = new JTable(tableModel);
+        
+        // Ocultar columna ID Idioma (índice 0)
+        tableTraducciones.getColumnModel().removeColumn(tableTraducciones.getColumnModel().getColumn(0));
+
         JScrollPane scrollPane = new JScrollPane(tableTraducciones);
         this.add(scrollPane, BorderLayout.CENTER);
 
@@ -105,8 +109,9 @@ public class PaisDialog extends JDialog {
         }
 
         List<PaisTr> traducciones = new ArrayList<>();
+        // Usamos tableModel porque la vista tiene una columna menos
         for (int i = 0; i < tableModel.getRowCount(); i++) {
-            int idIdioma = (int) tableModel.getValueAt(i, 0);
+            int idIdioma = (int) tableModel.getValueAt(i, 0); // Columna 0 en modelo es ID Idioma
             String nombre = (String) tableModel.getValueAt(i, 2);
 
             if (nombre != null && !nombre.trim().isEmpty()) {

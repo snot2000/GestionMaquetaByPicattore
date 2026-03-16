@@ -6,6 +6,8 @@ import com.picattore.gestion.domain.Escala;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.List;
 
 public class EscalaInternalFrame extends JInternalFrame {
@@ -34,6 +36,20 @@ public class EscalaInternalFrame extends JInternalFrame {
             }
         };
         table = new JTable(tableModel);
+        
+        // Ocultar columna ID (índice 0)
+        table.getColumnModel().removeColumn(table.getColumnModel().getColumn(0));
+        
+        // Añadir doble clic para editar
+        table.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    editarSeleccionado();
+                }
+            }
+        });
+
         JScrollPane scrollPane = new JScrollPane(table);
         this.add(scrollPane, BorderLayout.CENTER);
 
@@ -72,18 +88,20 @@ public class EscalaInternalFrame extends JInternalFrame {
     private void editarSeleccionado() {
         int selectedRow = table.getSelectedRow();
         if (selectedRow >= 0) {
-            int id = (int) tableModel.getValueAt(selectedRow, 0);
+            int modelRow = table.convertRowIndexToModel(selectedRow);
+            int id = (int) tableModel.getValueAt(modelRow, 0);
             escalaService.obtenerEscalaPorId(id).ifPresent(this::abrirDialogo);
         } else {
-            JOptionPane.showMessageDialog(this, "Seleccione una escala para editar.");
+            // No mostrar mensaje si no hay selección
         }
     }
 
     private void eliminarSeleccionado() {
         int selectedRow = table.getSelectedRow();
         if (selectedRow >= 0) {
-            int id = (int) tableModel.getValueAt(selectedRow, 0);
-            String codigo = (String) tableModel.getValueAt(selectedRow, 1);
+            int modelRow = table.convertRowIndexToModel(selectedRow);
+            int id = (int) tableModel.getValueAt(modelRow, 0);
+            String codigo = (String) tableModel.getValueAt(modelRow, 1);
 
             int confirm = JOptionPane.showConfirmDialog(this,
                     "¿Está seguro de eliminar la escala '" + codigo + "'?",

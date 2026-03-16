@@ -63,6 +63,10 @@ public class EpocaDialog extends JDialog {
             }
         };
         tableTraducciones = new JTable(tableModel);
+        
+        // Ocultar columna ID Idioma (índice 0)
+        tableTraducciones.getColumnModel().removeColumn(tableTraducciones.getColumnModel().getColumn(0));
+
         JScrollPane scrollPane = new JScrollPane(tableTraducciones);
         this.add(scrollPane, BorderLayout.CENTER);
 
@@ -107,6 +111,11 @@ public class EpocaDialog extends JDialog {
     }
 
     private void guardar() {
+        // Detener la edición de la celda si está activa para asegurar que se guardan los cambios
+        if (tableTraducciones.isEditing()) {
+            tableTraducciones.getCellEditor().stopCellEditing();
+        }
+
         String codigo = txtCodigo.getText();
         String anioInicioStr = txtAnioInicio.getText();
         String anioFinStr = txtAnioFin.getText();
@@ -127,12 +136,14 @@ public class EpocaDialog extends JDialog {
         }
 
         List<EpocaTr> traducciones = new ArrayList<>();
+        // Usamos tableModel.getRowCount() y tableModel.getValueAt() porque las columnas del modelo no cambian,
+        // aunque las de la vista sí (al ocultar ID).
         for (int i = 0; i < tableModel.getRowCount(); i++) {
-            int idIdioma = (int) tableModel.getValueAt(i, 0);
+            int idIdioma = (int) tableModel.getValueAt(i, 0); // Columna 0 del modelo es ID Idioma
             String nombre = (String) tableModel.getValueAt(i, 2);
             String descripcion = (String) tableModel.getValueAt(i, 3);
 
-            if (!nombre.isEmpty()) { // Solo guardar si tiene nombre
+            if (nombre != null && !nombre.trim().isEmpty()) { // Solo guardar si tiene nombre
                 traducciones.add(new EpocaTr(idIdioma, nombre, descripcion));
             }
         }

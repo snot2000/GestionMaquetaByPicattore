@@ -53,6 +53,10 @@ public class TipoVehiculoDialog extends JDialog {
             }
         };
         tableTraducciones = new JTable(tableModel);
+        
+        // Ocultar columna ID Idioma (índice 0)
+        tableTraducciones.getColumnModel().removeColumn(tableTraducciones.getColumnModel().getColumn(0));
+
         JScrollPane scrollPane = new JScrollPane(tableTraducciones);
         this.add(scrollPane, BorderLayout.CENTER);
 
@@ -107,8 +111,9 @@ public class TipoVehiculoDialog extends JDialog {
         }
 
         List<TipoVehiculoTr> traducciones = new ArrayList<>();
+        // Usamos tableModel.getValueAt para obtener datos del modelo (índices originales)
         for (int i = 0; i < tableModel.getRowCount(); i++) {
-            int idIdioma = (int) tableModel.getValueAt(i, 0);
+            int idIdioma = (int) tableModel.getValueAt(i, 0); // Columna 0 es ID Idioma
             String nombre = (String) tableModel.getValueAt(i, 2);
             String descripcion = (String) tableModel.getValueAt(i, 3);
 

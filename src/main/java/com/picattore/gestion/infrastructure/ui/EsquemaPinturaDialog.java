@@ -8,6 +8,8 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class EsquemaPinturaDialog extends JDialog {
 
@@ -22,6 +24,7 @@ public class EsquemaPinturaDialog extends JDialog {
     private JTextField txtNombre, txtAnioInicio, txtAnioFin;
     private JTable tableTraducciones;
     private DefaultTableModel tableModel;
+    private List<Operadora> todasLasOperadoras;
 
     public EsquemaPinturaDialog(Frame owner, EsquemaPinturaService esquemaService, PaisService paisService, OperadoraService operadoraService, IdiomaService idiomaService, EsquemaPintura esquemaExistente) {
         super(owner, esquemaExistente == null ? "Nuevo Esquema" : "Editar Esquema", true);
@@ -31,7 +34,7 @@ public class EsquemaPinturaDialog extends JDialog {
         this.idiomaService = idiomaService;
         this.esquemaExistente = esquemaExistente;
 
-        this.setSize(800, 600);
+        this.setSize(1000, 600);
         this.setLayout(new BorderLayout());
 
         inicializarComponentes();
@@ -44,6 +47,30 @@ public class EsquemaPinturaDialog extends JDialog {
 
         panelDatos.add(new JLabel("País:"));
         comboPais = new JComboBox<>();
+        comboPais.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                if (value instanceof Pais) {
+                    Pais pais = (Pais) value;
+                    String nombrePais = pais.getCodigo();
+                    String codigo = pais.getCodigo();
+
+                    Optional<Idioma> idiomaPrincipalOpt = idiomaService.obtenerIdiomaPrincipal();
+                    if (idiomaPrincipalOpt.isPresent()) {
+                        int idIdiomaPrincipal = idiomaPrincipalOpt.get().getId();
+                        for (PaisTr tr : pais.getTraducciones()) {
+                            if (tr.getIdIdioma() == idIdiomaPrincipal) {
+                                nombrePais = tr.getNombre();
+                                break;
+                            }
+                        }
+                    }
+                    setText(nombrePais + " (" + codigo + ")");
+                }
+                return this;
+            }
+        });
         panelDatos.add(comboPais);
 
         panelDatos.add(new JLabel("Operadora:"));
@@ -64,31 +91,37 @@ public class EsquemaPinturaDialog extends JDialog {
 
         this.add(panelDatos, BorderLayout.NORTH);
 
-        // Tabla de traducciones
         String[] columnNames = {"ID Idioma", "Idioma", "Descripción", "Código Colores", "Colores"};
         tableModel = new DefaultTableModel(columnNames, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return column >= 2; // Editables desde Descripción en adelante
+                return column >= 2;
             }
         };
         tableTraducciones = new JTable(tableModel);
+        tableTraducciones.getColumnModel().removeColumn(tableTraducciones.getColumnModel().getColumn(0));
+
         this.add(new JScrollPane(tableTraducciones), BorderLayout.CENTER);
 
-        // Botones
         JPanel panelBotones = new JPanel();
         JButton btnGuardar = new JButton("Guardar");
         btnGuardar.addActionListener(e -> guardar());
         panelBotones.add(btnGuardar);
         this.add(panelBotones, BorderLayout.SOUTH);
+        
+        // Listener para filtrar operadoras al cambiar país
+        comboPais.addActionListener(e -> filtrarOperadoras());
     }
 
     private void cargarDatos() {
         // Cargar combos
-        comboPais.setModel(new DefaultComboBoxModel<>(paisService.obtenerTodosLosPaises().toArray(new Pais[0])));
-        comboOperadora.setModel(new DefaultComboBoxModel<>(operadoraService.obtenerTodasLasOperadoras().toArray(new Operadora[0])));
+        List<Pais> paises = paisService.obtenerTodosLosPaises();
+        comboPais.setModel(new DefaultComboBoxModel<>(paises.toArray(new Pais[0])));
+        
+        todasLasOperadoras = operadoraService.obtenerTodasLasOperadoras();
+        // Inicialmente cargamos todas, pero luego el filtro actuará si hay selección
+        comboOperadora.setModel(new DefaultComboBoxModel<>(todasLasOperadoras.toArray(new Operadora[0])));
 
-        // Cargar tabla de traducciones
         List<Idioma> idiomas = idiomaService.obtenerTodosLosIdiomas();
         
         if (esquemaExistente != null) {
@@ -96,13 +129,15 @@ public class EsquemaPinturaDialog extends JDialog {
             txtAnioInicio.setText(esquemaExistente.getAnioInicio() != null ? String.valueOf(esquemaExistente.getAnioInicio()) : "");
             txtAnioFin.setText(esquemaExistente.getAnioFin() != null ? String.valueOf(esquemaExistente.getAnioFin()) : "");
 
-            // Seleccionar en combos
+            // Seleccionar país (esto disparará el listener y filtrará operadoras)
             for (int i = 0; i < comboPais.getItemCount(); i++) {
                 if (comboPais.getItemAt(i).getIdPais() == esquemaExistente.getIdPais()) {
                     comboPais.setSelectedIndex(i);
                     break;
                 }
             }
+            
+            // Seleccionar operadora (después de filtrar)
             for (int i = 0; i < comboOperadora.getItemCount(); i++) {
                 if (comboOperadora.getItemAt(i).getIdOperadora() == esquemaExistente.getIdOperadora()) {
                     comboOperadora.setSelectedIndex(i);
@@ -110,7 +145,6 @@ public class EsquemaPinturaDialog extends JDialog {
                 }
             }
 
-            // Rellenar tabla
             for (Idioma idioma : idiomas) {
                 String desc = "", codCol = "", col = "";
                 for (EsquemaPinturaTr tr : esquemaExistente.getTraducciones()) {
@@ -124,8 +158,38 @@ public class EsquemaPinturaDialog extends JDialog {
                 tableModel.addRow(new Object[]{idioma.getId(), idioma.getNombre(), desc, codCol, col});
             }
         } else {
+            // Nuevo esquema
+            comboPais.setSelectedIndex(-1); // Ningún país seleccionado
+            filtrarOperadoras(); // Mostrar todas las operadoras
+            
             for (Idioma idioma : idiomas) {
                 tableModel.addRow(new Object[]{idioma.getId(), idioma.getNombre(), "", "", ""});
+            }
+        }
+    }
+
+    private void filtrarOperadoras() {
+        Pais paisSeleccionado = (Pais) comboPais.getSelectedItem();
+        List<Operadora> operadorasFiltradas;
+
+        if (paisSeleccionado == null) {
+            operadorasFiltradas = new ArrayList<>(todasLasOperadoras);
+        } else {
+            operadorasFiltradas = todasLasOperadoras.stream()
+                    .filter(op -> op.getIdPais() != null && op.getIdPais() == paisSeleccionado.getIdPais())
+                    .collect(Collectors.toList());
+        }
+
+        DefaultComboBoxModel<Operadora> model = new DefaultComboBoxModel<>(operadorasFiltradas.toArray(new Operadora[0]));
+        comboOperadora.setModel(model);
+        
+        // Si estamos editando y acabamos de recargar, intentamos mantener la selección si es válida
+        if (esquemaExistente != null) {
+             for (int i = 0; i < comboOperadora.getItemCount(); i++) {
+                if (comboOperadora.getItemAt(i).getIdOperadora() == esquemaExistente.getIdOperadora()) {
+                    comboOperadora.setSelectedIndex(i);
+                    break;
+                }
             }
         }
     }
@@ -146,13 +210,13 @@ public class EsquemaPinturaDialog extends JDialog {
         Integer anioFin = txtAnioFin.getText().isEmpty() ? null : Integer.parseInt(txtAnioFin.getText());
 
         List<EsquemaPinturaTr> traducciones = new ArrayList<>();
+        
         for (int i = 0; i < tableModel.getRowCount(); i++) {
-            int idIdioma = (int) tableModel.getValueAt(i, 0);
+            int idIdioma = (int) tableModel.getValueAt(i, 0); 
             String desc = (String) tableModel.getValueAt(i, 2);
             String codCol = (String) tableModel.getValueAt(i, 3);
             String col = (String) tableModel.getValueAt(i, 4);
             
-            // Guardar solo si hay algún dato de traducción
             if ((desc != null && !desc.trim().isEmpty()) || (codCol != null && !codCol.trim().isEmpty()) || (col != null && !col.trim().isEmpty())) {
                 traducciones.add(new EsquemaPinturaTr(idIdioma, desc, codCol, col));
             }
