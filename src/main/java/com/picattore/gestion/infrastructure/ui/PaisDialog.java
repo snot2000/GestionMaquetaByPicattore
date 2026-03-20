@@ -49,7 +49,9 @@ public class PaisDialog extends JDialog {
         tableModel = new DefaultTableModel(columnNames, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return column == 2; // Solo Nombre es editable
+                // isCellEditable recibe siempre el índice de la columna en el MODELO.
+                // Como "Nombre" es la columna 2 en el modelo, devolvemos column == 2.
+                return column == 2;
             }
         };
         tableTraducciones = new JTable(tableModel);

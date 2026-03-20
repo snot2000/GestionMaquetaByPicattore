@@ -13,8 +13,8 @@ public class VehiculoRealService {
         this.vehiculoRealRepository = vehiculoRealRepository;
     }
 
-    public void crearVehiculoReal(String numeracion, String uid, Integer idTipoVehiculo, Integer idPais, Integer idEpoca, Integer idEsquemaPintura, Integer idOperadora) {
-        VehiculoReal nuevoVehiculo = new VehiculoReal(numeracion, uid, idTipoVehiculo, idPais, idEpoca, idEsquemaPintura, idOperadora);
+    public void crearVehiculoReal(String nombre, String apodo, String numeracion, String uid, Integer idTipoVehiculo, Integer idPais, Integer idEpoca, Integer idEsquemaPintura, Integer idOperadora) {
+        VehiculoReal nuevoVehiculo = new VehiculoReal(nombre, apodo, numeracion, uid, idTipoVehiculo, idPais, idEpoca, idEsquemaPintura, idOperadora);
         vehiculoRealRepository.guardar(nuevoVehiculo);
     }
 
@@ -26,10 +26,12 @@ public class VehiculoRealService {
         return vehiculoRealRepository.buscarPorId(id);
     }
 
-    public void actualizarVehiculoReal(int id, String numeracion, String uid, Integer idTipoVehiculo, Integer idPais, Integer idEpoca, Integer idEsquemaPintura, Integer idOperadora) {
+    public void actualizarVehiculoReal(int id, String nombre, String apodo, String numeracion, String uid, Integer idTipoVehiculo, Integer idPais, Integer idEpoca, Integer idEsquemaPintura, Integer idOperadora) {
         Optional<VehiculoReal> vehiculoExistente = vehiculoRealRepository.buscarPorId(id);
         if (vehiculoExistente.isPresent()) {
             VehiculoReal vehiculo = vehiculoExistente.get();
+            vehiculo.setNombre(nombre);
+            vehiculo.setApodo(apodo);
             vehiculo.setNumeracion(numeracion);
             vehiculo.setUid(uid);
             vehiculo.setIdTipoVehiculo(idTipoVehiculo);

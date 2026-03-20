@@ -41,7 +41,7 @@ public class VehiculoRealInternalFrame extends JInternalFrame implements Languag
     }
 
     private void inicializarComponentes() {
-        String[] columnNames = {"ID", "Numeración", "UID", "Tipo Vehículo", "País", "Época", "Esquema Pintura", "Operadora"};
+        String[] columnNames = {"ID", "Nombre", "Apodo", "Numeración", "UID", "Tipo Vehículo", "País", "Época", "Esquema Pintura", "Operadora"};
         tableModel = new DefaultTableModel(columnNames, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -153,6 +153,8 @@ public class VehiculoRealInternalFrame extends JInternalFrame implements Languag
 
             tableModel.addRow(new Object[]{
                     v.getId(),
+                    v.getNombre(),
+                    v.getApodo(),
                     v.getNumeracion(),
                     v.getUid(),
                     nombreTipo,
@@ -187,10 +189,10 @@ public class VehiculoRealInternalFrame extends JInternalFrame implements Languag
         if (selectedRow >= 0) {
             int modelRow = table.convertRowIndexToModel(selectedRow);
             int id = (int) tableModel.getValueAt(modelRow, 0);
-            String numeracion = (String) tableModel.getValueAt(modelRow, 1);
+            String nombre = (String) tableModel.getValueAt(modelRow, 1);
 
             int confirm = JOptionPane.showConfirmDialog(this,
-                    "¿Está seguro de eliminar el vehículo real '" + numeracion + "'?",
+                    "¿Está seguro de eliminar el vehículo real '" + nombre + "'?",
                     "Confirmar eliminación",
                     JOptionPane.YES_NO_OPTION);
 

@@ -23,6 +23,8 @@ public class MainFrame extends JFrame {
     private EsquemaPinturaService esquemaPinturaService;
     private FabricanteService fabricanteService;
     private TipoModeloService tipoModeloService;
+    private VehiculoRealService vehiculoRealService;
+    private ReferenciaModeloService referenciaModeloService;
     private JMenu menuIdioma;
 
     public MainFrame() {
@@ -58,6 +60,12 @@ public class MainFrame extends JFrame {
         SqliteTipoModeloRepository tipoModeloRepository = new SqliteTipoModeloRepository();
         tipoModeloService = new TipoModeloService(tipoModeloRepository);
 
+        SqliteVehiculoRealRepository vehiculoRealRepository = new SqliteVehiculoRealRepository();
+        vehiculoRealService = new VehiculoRealService(vehiculoRealRepository);
+
+        SqliteReferenciaModeloRepository referenciaModeloRepository = new SqliteReferenciaModeloRepository();
+        referenciaModeloService = new ReferenciaModeloService(referenciaModeloRepository);
+
         // Configurar el panel de escritorio
         desktopPane = new JDesktopPane();
         this.add(desktopPane, BorderLayout.CENTER);
@@ -70,6 +78,28 @@ public class MainFrame extends JFrame {
 
     private void crearMenu() {
         JMenuBar menuBar = new JMenuBar();
+
+        // Menú Material Real
+        JMenu menuMaterialReal = new JMenu("Material Real");
+        JMenuItem itemVehiculosReales = new JMenuItem("Vehículos reales");
+        itemVehiculosReales.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                abrirVentanaVehiculosReales();
+            }
+        });
+        menuMaterialReal.add(itemVehiculosReales);
+        
+        JMenuItem itemReferencias = new JMenuItem("Referencias Modelos");
+        itemReferencias.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                abrirVentanaReferencias();
+            }
+        });
+        menuMaterialReal.add(itemReferencias);
+        
+        menuBar.add(menuMaterialReal);
 
         // Menú Datos
         JMenu menuDatos = new JMenu("Datos");
@@ -411,6 +441,50 @@ public class MainFrame extends JFrame {
         tipoModeloFrame.setVisible(true);
         try {
             tipoModeloFrame.setSelected(true);
+        } catch (java.beans.PropertyVetoException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void abrirVentanaVehiculosReales() {
+        for (JInternalFrame frame : desktopPane.getAllFrames()) {
+            if (frame instanceof VehiculoRealInternalFrame) {
+                try {
+                    frame.setSelected(true);
+                } catch (java.beans.PropertyVetoException e) {
+                    e.printStackTrace();
+                }
+                return;
+            }
+        }
+
+        VehiculoRealInternalFrame vehiculoFrame = new VehiculoRealInternalFrame(vehiculoRealService, tipoVehiculoService, paisService, epocaService, esquemaPinturaService, operadoraService, idiomaService);
+        desktopPane.add(vehiculoFrame);
+        vehiculoFrame.setVisible(true);
+        try {
+            vehiculoFrame.setSelected(true);
+        } catch (java.beans.PropertyVetoException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void abrirVentanaReferencias() {
+        for (JInternalFrame frame : desktopPane.getAllFrames()) {
+            if (frame instanceof ReferenciaModeloInternalFrame) {
+                try {
+                    frame.setSelected(true);
+                } catch (java.beans.PropertyVetoException e) {
+                    e.printStackTrace();
+                }
+                return;
+            }
+        }
+
+        ReferenciaModeloInternalFrame refFrame = new ReferenciaModeloInternalFrame(referenciaModeloService, fabricanteService, vehiculoRealService, escalaService, tipoVehiculoService, paisService, epocaService, esquemaPinturaService, operadoraService, idiomaService);
+        desktopPane.add(refFrame);
+        refFrame.setVisible(true);
+        try {
+            refFrame.setSelected(true);
         } catch (java.beans.PropertyVetoException e) {
             e.printStackTrace();
         }

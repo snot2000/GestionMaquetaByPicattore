@@ -149,7 +149,7 @@ public class Database {
                     "fecha_baja TEXT, " +
                     "FOREIGN KEY(id_pais) REFERENCES Paises(id_pais))");
 
-            // --- NUEVAS TABLAS PARA TIPO MODELO ---
+            // Tabla Tipo_modelo
             stmt.execute("CREATE TABLE IF NOT EXISTS Tipo_modelo (" +
                     "id_tipo_modelo INTEGER PRIMARY KEY, " +
                     "codigo TEXT)");
@@ -162,6 +162,42 @@ public class Database {
                     "descripcion TEXT, " +
                     "FOREIGN KEY(id_tipo_modelo) REFERENCES Tipo_modelo(id_tipo_modelo), " +
                     "FOREIGN KEY(id_idioma) REFERENCES Idiomas(Id))");
+
+            // Tabla VEHICULO_REAL
+            stmt.execute("CREATE TABLE IF NOT EXISTS vehiculo_real (" +
+                    "id INTEGER PRIMARY KEY, " +
+                    "nombre TEXT, " +
+                    "apodo TEXT, " +
+                    "numeracion TEXT, " +
+                    "uid TEXT, " +
+                    "id_tipo_vehiculo INTEGER, " +
+                    "id_pais INTEGER, " +
+                    "id_epoca INTEGER, " +
+                    "id_esquema_pintura INTEGER, " +
+                    "id_operadora INTEGER, " +
+                    "FOREIGN KEY(id_tipo_vehiculo) REFERENCES Tipo_vehiculo(id_tipo_vehiculo), " +
+                    "FOREIGN KEY(id_pais) REFERENCES Paises(id_pais), " +
+                    "FOREIGN KEY(id_epoca) REFERENCES Epocas(id_epoca), " +
+                    "FOREIGN KEY(id_esquema_pintura) REFERENCES Esquema_pintura(id_esquema_pintura), " +
+                    "FOREIGN KEY(id_operadora) REFERENCES Operadoras(id_operadora))");
+                    
+            try {
+                stmt.execute("ALTER TABLE vehiculo_real ADD COLUMN nombre TEXT");
+                stmt.execute("ALTER TABLE vehiculo_real ADD COLUMN apodo TEXT");
+            } catch (Exception e) { }
+
+            // --- NUEVA TABLA REFERENCIA_MODELO ---
+            stmt.execute("CREATE TABLE IF NOT EXISTS referencia_modelo (" +
+                    "id INTEGER PRIMARY KEY, " +
+                    "id_fabricante INTEGER, " +
+                    "referencia TEXT, " +
+                    "id_vehiculo_real INTEGER, " +
+                    "id_escala INTEGER, " +
+                    "fecha_salida TEXT, " +
+                    "fecha_descontinuado TEXT, " +
+                    "FOREIGN KEY(id_fabricante) REFERENCES Fabricantes(id_fabricante), " +
+                    "FOREIGN KEY(id_vehiculo_real) REFERENCES vehiculo_real(id), " +
+                    "FOREIGN KEY(id_escala) REFERENCES Escalas(id_escala))");
 
         } catch (Exception e) {
             System.err.println("Error DB: " + e.getMessage());

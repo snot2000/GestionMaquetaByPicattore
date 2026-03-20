@@ -59,7 +59,7 @@ public class EpocaDialog extends JDialog {
         tableModel = new DefaultTableModel(columnNames, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return column == 2 || column == 3; // Solo Nombre y Descripción son editables
+                return column == 2 || column == 3;
             }
         };
         tableTraducciones = new JTable(tableModel);

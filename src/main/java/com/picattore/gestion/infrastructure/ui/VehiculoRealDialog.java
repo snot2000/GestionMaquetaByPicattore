@@ -7,6 +7,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class VehiculoRealDialog extends JDialog {
 
@@ -19,12 +20,17 @@ public class VehiculoRealDialog extends JDialog {
     private final IdiomaService idiomaService;
     private final VehiculoReal vehiculoExistente;
 
-    private JTextField txtNumeracion, txtUid;
+    private JTextField txtNombre, txtApodo, txtNumeracion, txtUid;
     private JComboBox<TipoVehiculo> comboTipoVehiculo;
     private JComboBox<Pais> comboPais;
     private JComboBox<Epoca> comboEpoca;
     private JComboBox<EsquemaPintura> comboEsquema;
     private JComboBox<Operadora> comboOperadora;
+
+    private List<EsquemaPintura> todosLosEsquemas;
+    private List<Operadora> todasLasOperadoras;
+
+    private boolean isProgrammaticUpdate = false;
 
     public VehiculoRealDialog(Frame owner, VehiculoRealService vehiculoRealService, TipoVehiculoService tipoVehiculoService, PaisService paisService, EpocaService epocaService, EsquemaPinturaService esquemaService, OperadoraService operadoraService, IdiomaService idiomaService, VehiculoReal vehiculoExistente) {
         super(owner, vehiculoExistente == null ? "Nuevo Vehículo Real" : "Editar Vehículo Real", true);
@@ -37,7 +43,7 @@ public class VehiculoRealDialog extends JDialog {
         this.idiomaService = idiomaService;
         this.vehiculoExistente = vehiculoExistente;
 
-        this.setSize(500, 400);
+        this.setSize(500, 450);
         this.setLayout(new BorderLayout());
 
         inicializarComponentes();
@@ -47,6 +53,14 @@ public class VehiculoRealDialog extends JDialog {
     private void inicializarComponentes() {
         JPanel formPanel = new JPanel(new GridLayout(0, 2, 5, 5));
         formPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        formPanel.add(new JLabel("Nombre:"));
+        txtNombre = new JTextField();
+        formPanel.add(txtNombre);
+
+        formPanel.add(new JLabel("Apodo:"));
+        txtApodo = new JTextField();
+        formPanel.add(txtApodo);
 
         formPanel.add(new JLabel("Numeración:"));
         txtNumeracion = new JTextField();
@@ -82,32 +96,6 @@ public class VehiculoRealDialog extends JDialog {
         });
         formPanel.add(comboTipoVehiculo);
 
-        formPanel.add(new JLabel("País:"));
-        comboPais = new JComboBox<>();
-        comboPais.setRenderer(new DefaultListCellRenderer() {
-            @Override
-            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                if (value instanceof Pais) {
-                    Pais pais = (Pais) value;
-                    String nombre = pais.getCodigo();
-                    Optional<Idioma> idiomaPrincipalOpt = idiomaService.obtenerIdiomaPrincipal();
-                    if (idiomaPrincipalOpt.isPresent()) {
-                        int idIdiomaPrincipal = idiomaPrincipalOpt.get().getId();
-                        for (PaisTr tr : pais.getTraducciones()) {
-                            if (tr.getIdIdioma() == idIdiomaPrincipal) {
-                                nombre = tr.getNombre();
-                                break;
-                            }
-                        }
-                    }
-                    setText(nombre + " (" + pais.getCodigo() + ")");
-                }
-                return this;
-            }
-        });
-        formPanel.add(comboPais);
-
         formPanel.add(new JLabel("Época:"));
         comboEpoca = new JComboBox<>();
         comboEpoca.setRenderer(new DefaultListCellRenderer() {
@@ -134,13 +122,50 @@ public class VehiculoRealDialog extends JDialog {
         });
         formPanel.add(comboEpoca);
 
-        formPanel.add(new JLabel("Esquema Pintura:"));
-        comboEsquema = new JComboBox<>();
-        formPanel.add(comboEsquema);
+        formPanel.add(new JLabel("País:"));
+        comboPais = new JComboBox<>();
+        comboPais.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                if (value instanceof Pais) {
+                    Pais pais = (Pais) value;
+                    String nombre = pais.getCodigo();
+                    Optional<Idioma> idiomaPrincipalOpt = idiomaService.obtenerIdiomaPrincipal();
+                    if (idiomaPrincipalOpt.isPresent()) {
+                        int idIdiomaPrincipal = idiomaPrincipalOpt.get().getId();
+                        for (PaisTr tr : pais.getTraducciones()) {
+                            if (tr.getIdIdioma() == idIdiomaPrincipal) {
+                                nombre = tr.getNombre();
+                                break;
+                            }
+                        }
+                    }
+                    setText(nombre + " (" + pais.getCodigo() + ")");
+                }
+                return this;
+            }
+        });
+        formPanel.add(comboPais);
 
         formPanel.add(new JLabel("Operadora:"));
         comboOperadora = new JComboBox<>();
         formPanel.add(comboOperadora);
+
+        formPanel.add(new JLabel("Esquema Pintura:"));
+        comboEsquema = new JComboBox<>();
+        comboEsquema.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                if (value instanceof EsquemaPintura) {
+                    EsquemaPintura esquema = (EsquemaPintura) value;
+                    setText(esquema.getNombre());
+                }
+                return this;
+            }
+        });
+        formPanel.add(comboEsquema);
 
         this.add(formPanel, BorderLayout.CENTER);
 
@@ -154,22 +179,44 @@ public class VehiculoRealDialog extends JDialog {
         panelBotones.add(btnGuardar);
         panelBotones.add(btnCancelar);
         this.add(panelBotones, BorderLayout.SOUTH);
+
+        comboPais.addActionListener(e -> {
+            if (!isProgrammaticUpdate) {
+                filtrarOperadorasYEsquemas();
+            }
+        });
+
+        comboOperadora.addActionListener(e -> {
+            if (!isProgrammaticUpdate) {
+                filtrarEsquemas();
+            }
+        });
     }
 
     private void cargarDatos() {
+        isProgrammaticUpdate = true;
+
+        todosLosEsquemas = esquemaService.obtenerTodosLosEsquemas();
+        todasLasOperadoras = operadoraService.obtenerTodasLasOperadoras();
+
         comboTipoVehiculo.setModel(new DefaultComboBoxModel<>(tipoVehiculoService.obtenerTodosLosTiposVehiculo().toArray(new TipoVehiculo[0])));
-        comboPais.setModel(new DefaultComboBoxModel<>(paisService.obtenerTodosLosPaises().toArray(new Pais[0])));
         comboEpoca.setModel(new DefaultComboBoxModel<>(epocaService.obtenerTodasLasEpocas().toArray(new Epoca[0])));
-        comboEsquema.setModel(new DefaultComboBoxModel<>(esquemaService.obtenerTodosLosEsquemas().toArray(new EsquemaPintura[0])));
-        comboOperadora.setModel(new DefaultComboBoxModel<>(operadoraService.obtenerTodasLasOperadoras().toArray(new Operadora[0])));
+        
+        List<Pais> paises = paisService.obtenerTodosLosPaises();
+        comboPais.setModel(new DefaultComboBoxModel<>(paises.toArray(new Pais[0])));
 
         comboTipoVehiculo.setSelectedIndex(-1);
-        comboPais.setSelectedIndex(-1);
         comboEpoca.setSelectedIndex(-1);
-        comboEsquema.setSelectedIndex(-1);
+        comboPais.setSelectedIndex(-1);
+        
+        comboOperadora.setModel(new DefaultComboBoxModel<>(todasLasOperadoras.toArray(new Operadora[0])));
         comboOperadora.setSelectedIndex(-1);
+        comboEsquema.setModel(new DefaultComboBoxModel<>(todosLosEsquemas.toArray(new EsquemaPintura[0])));
+        comboEsquema.setSelectedIndex(-1);
 
         if (vehiculoExistente != null) {
+            txtNombre.setText(vehiculoExistente.getNombre());
+            txtApodo.setText(vehiculoExistente.getApodo());
             txtNumeracion.setText(vehiculoExistente.getNumeracion());
             txtUid.setText(vehiculoExistente.getUid());
 
@@ -177,14 +224,6 @@ public class VehiculoRealDialog extends JDialog {
                 for (int i = 0; i < comboTipoVehiculo.getItemCount(); i++) {
                     if (comboTipoVehiculo.getItemAt(i).getIdTipoVehiculo() == vehiculoExistente.getIdTipoVehiculo()) {
                         comboTipoVehiculo.setSelectedIndex(i);
-                        break;
-                    }
-                }
-            }
-            if (vehiculoExistente.getIdPais() != null) {
-                for (int i = 0; i < comboPais.getItemCount(); i++) {
-                    if (comboPais.getItemAt(i).getIdPais() == vehiculoExistente.getIdPais()) {
-                        comboPais.setSelectedIndex(i);
                         break;
                     }
                 }
@@ -197,6 +236,33 @@ public class VehiculoRealDialog extends JDialog {
                     }
                 }
             }
+            
+            if (vehiculoExistente.getIdPais() != null) {
+                for (int i = 0; i < comboPais.getItemCount(); i++) {
+                    if (comboPais.getItemAt(i).getIdPais() == vehiculoExistente.getIdPais()) {
+                        comboPais.setSelectedIndex(i);
+                        break;
+                    }
+                }
+                
+                isProgrammaticUpdate = false;
+                filtrarOperadoras();
+                isProgrammaticUpdate = true;
+            }
+
+            if (vehiculoExistente.getIdOperadora() != null) {
+                for (int i = 0; i < comboOperadora.getItemCount(); i++) {
+                    if (comboOperadora.getItemAt(i).getIdOperadora() == vehiculoExistente.getIdOperadora()) {
+                        comboOperadora.setSelectedIndex(i);
+                        break;
+                    }
+                }
+                
+                isProgrammaticUpdate = false;
+                filtrarEsquemas();
+                isProgrammaticUpdate = true;
+            }
+
             if (vehiculoExistente.getIdEsquemaPintura() != null) {
                 for (int i = 0; i < comboEsquema.getItemCount(); i++) {
                     if (comboEsquema.getItemAt(i).getIdEsquemaPintura() == vehiculoExistente.getIdEsquemaPintura()) {
@@ -205,16 +271,80 @@ public class VehiculoRealDialog extends JDialog {
                     }
                 }
             }
-            if (vehiculoExistente.getIdOperadora() != null) {
-                for (int i = 0; i < comboOperadora.getItemCount(); i++) {
-                    if (comboOperadora.getItemAt(i).getIdOperadora() == vehiculoExistente.getIdOperadora()) {
-                        comboOperadora.setSelectedIndex(i);
-                        break;
-                    }
+        }
+        
+        isProgrammaticUpdate = false;
+    }
+
+    private void filtrarOperadorasYEsquemas() {
+        filtrarOperadoras();
+        filtrarEsquemas();
+    }
+
+    private void filtrarOperadoras() {
+        Pais paisSeleccionado = (Pais) comboPais.getSelectedItem();
+        List<Operadora> operadorasFiltradas;
+
+        if (paisSeleccionado == null) {
+            operadorasFiltradas = todasLasOperadoras;
+        } else {
+            operadorasFiltradas = todasLasOperadoras.stream()
+                    .filter(op -> op.getIdPais() != null && op.getIdPais() == paisSeleccionado.getIdPais())
+                    .collect(Collectors.toList());
+        }
+
+        Operadora seleccionPrevia = (Operadora) comboOperadora.getSelectedItem();
+        
+        isProgrammaticUpdate = true;
+        comboOperadora.setModel(new DefaultComboBoxModel<>(operadorasFiltradas.toArray(new Operadora[0])));
+        comboOperadora.setSelectedIndex(-1);
+
+        if (seleccionPrevia != null) {
+            for (int i = 0; i < comboOperadora.getItemCount(); i++) {
+                if (comboOperadora.getItemAt(i).getIdOperadora() == seleccionPrevia.getIdOperadora()) {
+                    comboOperadora.setSelectedIndex(i);
+                    break;
                 }
             }
         }
+        isProgrammaticUpdate = false;
     }
+
+    private void filtrarEsquemas() {
+        Pais paisSeleccionado = (Pais) comboPais.getSelectedItem();
+        Operadora operadoraSeleccionada = (Operadora) comboOperadora.getSelectedItem();
+        
+        List<EsquemaPintura> esquemasFiltrados = todosLosEsquemas;
+
+        if (paisSeleccionado != null) {
+            esquemasFiltrados = esquemasFiltrados.stream()
+                    .filter(eq -> eq.getIdPais() == paisSeleccionado.getIdPais())
+                    .collect(Collectors.toList());
+        }
+
+        if (operadoraSeleccionada != null) {
+            esquemasFiltrados = esquemasFiltrados.stream()
+                    .filter(eq -> eq.getIdOperadora() == operadoraSeleccionada.getIdOperadora())
+                    .collect(Collectors.toList());
+        }
+
+        EsquemaPintura seleccionPrevia = (EsquemaPintura) comboEsquema.getSelectedItem();
+
+        isProgrammaticUpdate = true;
+        comboEsquema.setModel(new DefaultComboBoxModel<>(esquemasFiltrados.toArray(new EsquemaPintura[0])));
+        comboEsquema.setSelectedIndex(-1);
+
+        if (seleccionPrevia != null) {
+            for (int i = 0; i < comboEsquema.getItemCount(); i++) {
+                if (comboEsquema.getItemAt(i).getIdEsquemaPintura() == seleccionPrevia.getIdEsquemaPintura()) {
+                    comboEsquema.setSelectedIndex(i);
+                    break;
+                }
+            }
+        }
+        isProgrammaticUpdate = false;
+    }
+
 
     private void guardar() {
         TipoVehiculo tipo = (TipoVehiculo) comboTipoVehiculo.getSelectedItem();
@@ -230,9 +360,9 @@ public class VehiculoRealDialog extends JDialog {
         Integer idOperadora = operadora != null ? operadora.getIdOperadora() : null;
 
         if (vehiculoExistente == null) {
-            vehiculoRealService.crearVehiculoReal(txtNumeracion.getText(), txtUid.getText(), idTipoVehiculo, idPais, idEpoca, idEsquema, idOperadora);
+            vehiculoRealService.crearVehiculoReal(txtNombre.getText(), txtApodo.getText(), txtNumeracion.getText(), txtUid.getText(), idTipoVehiculo, idPais, idEpoca, idEsquema, idOperadora);
         } else {
-            vehiculoRealService.actualizarVehiculoReal(vehiculoExistente.getId(), txtNumeracion.getText(), txtUid.getText(), idTipoVehiculo, idPais, idEpoca, idEsquema, idOperadora);
+            vehiculoRealService.actualizarVehiculoReal(vehiculoExistente.getId(), txtNombre.getText(), txtApodo.getText(), txtNumeracion.getText(), txtUid.getText(), idTipoVehiculo, idPais, idEpoca, idEsquema, idOperadora);
         }
         dispose();
     }

@@ -2,6 +2,8 @@ package com.picattore.gestion.domain;
 
 public class VehiculoReal {
     private int id;
+    private String nombre;
+    private String apodo;
     private String numeracion;
     private String uid;
     private Integer idTipoVehiculo;
@@ -10,7 +12,9 @@ public class VehiculoReal {
     private Integer idEsquemaPintura;
     private Integer idOperadora;
 
-    public VehiculoReal(String numeracion, String uid, Integer idTipoVehiculo, Integer idPais, Integer idEpoca, Integer idEsquemaPintura, Integer idOperadora) {
+    public VehiculoReal(String nombre, String apodo, String numeracion, String uid, Integer idTipoVehiculo, Integer idPais, Integer idEpoca, Integer idEsquemaPintura, Integer idOperadora) {
+        this.nombre = nombre;
+        this.apodo = apodo;
         this.numeracion = numeracion;
         this.uid = uid;
         this.idTipoVehiculo = idTipoVehiculo;
@@ -20,13 +24,17 @@ public class VehiculoReal {
         this.idOperadora = idOperadora;
     }
 
-    public VehiculoReal(int id, String numeracion, String uid, Integer idTipoVehiculo, Integer idPais, Integer idEpoca, Integer idEsquemaPintura, Integer idOperadora) {
-        this(numeracion, uid, idTipoVehiculo, idPais, idEpoca, idEsquemaPintura, idOperadora);
+    public VehiculoReal(int id, String nombre, String apodo, String numeracion, String uid, Integer idTipoVehiculo, Integer idPais, Integer idEpoca, Integer idEsquemaPintura, Integer idOperadora) {
+        this(nombre, apodo, numeracion, uid, idTipoVehiculo, idPais, idEpoca, idEsquemaPintura, idOperadora);
         this.id = id;
     }
 
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
+    public String getNombre() { return nombre; }
+    public void setNombre(String nombre) { this.nombre = nombre; }
+    public String getApodo() { return apodo; }
+    public void setApodo(String apodo) { this.apodo = apodo; }
     public String getNumeracion() { return numeracion; }
     public void setNumeracion(String numeracion) { this.numeracion = numeracion; }
     public String getUid() { return uid; }

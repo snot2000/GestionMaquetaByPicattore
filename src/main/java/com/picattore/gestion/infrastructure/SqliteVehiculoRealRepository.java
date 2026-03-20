@@ -12,18 +12,20 @@ public class SqliteVehiculoRealRepository implements VehiculoRealRepository {
 
     @Override
     public void guardar(VehiculoReal vehiculoReal) {
-        String sql = "INSERT INTO vehiculo_real(numeracion, uid, id_tipo_vehiculo, id_pais, id_epoca, id_esquema_pintura, id_operadora) VALUES(?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO vehiculo_real(nombre, apodo, numeracion, uid, id_tipo_vehiculo, id_pais, id_epoca, id_esquema_pintura, id_operadora) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = Database.conectar();
              PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             
-            pstmt.setString(1, vehiculoReal.getNumeracion());
-            pstmt.setString(2, vehiculoReal.getUid());
-            pstmt.setObject(3, vehiculoReal.getIdTipoVehiculo());
-            pstmt.setObject(4, vehiculoReal.getIdPais());
-            pstmt.setObject(5, vehiculoReal.getIdEpoca());
-            pstmt.setObject(6, vehiculoReal.getIdEsquemaPintura());
-            pstmt.setObject(7, vehiculoReal.getIdOperadora());
+            pstmt.setString(1, vehiculoReal.getNombre());
+            pstmt.setString(2, vehiculoReal.getApodo());
+            pstmt.setString(3, vehiculoReal.getNumeracion());
+            pstmt.setString(4, vehiculoReal.getUid());
+            pstmt.setObject(5, vehiculoReal.getIdTipoVehiculo());
+            pstmt.setObject(6, vehiculoReal.getIdPais());
+            pstmt.setObject(7, vehiculoReal.getIdEpoca());
+            pstmt.setObject(8, vehiculoReal.getIdEsquemaPintura());
+            pstmt.setObject(9, vehiculoReal.getIdOperadora());
             pstmt.executeUpdate();
 
             try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
@@ -49,6 +51,8 @@ public class SqliteVehiculoRealRepository implements VehiculoRealRepository {
             if (rs.next()) {
                 vehiculoReal = new VehiculoReal(
                         rs.getInt("id"),
+                        rs.getString("nombre"),
+                        rs.getString("apodo"),
                         rs.getString("numeracion"),
                         rs.getString("uid"),
                         (Integer) rs.getObject("id_tipo_vehiculo"),
@@ -76,6 +80,8 @@ public class SqliteVehiculoRealRepository implements VehiculoRealRepository {
             while (rs.next()) {
                 VehiculoReal vehiculoReal = new VehiculoReal(
                         rs.getInt("id"),
+                        rs.getString("nombre"),
+                        rs.getString("apodo"),
                         rs.getString("numeracion"),
                         rs.getString("uid"),
                         (Integer) rs.getObject("id_tipo_vehiculo"),
@@ -94,18 +100,20 @@ public class SqliteVehiculoRealRepository implements VehiculoRealRepository {
 
     @Override
     public void actualizar(VehiculoReal vehiculoReal) {
-        String sql = "UPDATE vehiculo_real SET numeracion = ?, uid = ?, id_tipo_vehiculo = ?, id_pais = ?, id_epoca = ?, id_esquema_pintura = ?, id_operadora = ? WHERE id = ?";
+        String sql = "UPDATE vehiculo_real SET nombre = ?, apodo = ?, numeracion = ?, uid = ?, id_tipo_vehiculo = ?, id_pais = ?, id_epoca = ?, id_esquema_pintura = ?, id_operadora = ? WHERE id = ?";
 
         try (Connection conn = Database.conectar();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, vehiculoReal.getNumeracion());
-            pstmt.setString(2, vehiculoReal.getUid());
-            pstmt.setObject(3, vehiculoReal.getIdTipoVehiculo());
-            pstmt.setObject(4, vehiculoReal.getIdPais());
-            pstmt.setObject(5, vehiculoReal.getIdEpoca());
-            pstmt.setObject(6, vehiculoReal.getIdEsquemaPintura());
-            pstmt.setObject(7, vehiculoReal.getIdOperadora());
-            pstmt.setInt(8, vehiculoReal.getId());
+            pstmt.setString(1, vehiculoReal.getNombre());
+            pstmt.setString(2, vehiculoReal.getApodo());
+            pstmt.setString(3, vehiculoReal.getNumeracion());
+            pstmt.setString(4, vehiculoReal.getUid());
+            pstmt.setObject(5, vehiculoReal.getIdTipoVehiculo());
+            pstmt.setObject(6, vehiculoReal.getIdPais());
+            pstmt.setObject(7, vehiculoReal.getIdEpoca());
+            pstmt.setObject(8, vehiculoReal.getIdEsquemaPintura());
+            pstmt.setObject(9, vehiculoReal.getIdOperadora());
+            pstmt.setInt(10, vehiculoReal.getId());
             pstmt.executeUpdate();
         } catch (SQLException e) {
             System.out.println(e.getMessage());

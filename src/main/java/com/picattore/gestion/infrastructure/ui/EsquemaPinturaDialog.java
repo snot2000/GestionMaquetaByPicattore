@@ -26,6 +26,8 @@ public class EsquemaPinturaDialog extends JDialog {
     private DefaultTableModel tableModel;
     private List<Operadora> todasLasOperadoras;
 
+    private boolean isProgrammaticUpdate = false; // Flag to prevent listener loops
+
     public EsquemaPinturaDialog(Frame owner, EsquemaPinturaService esquemaService, PaisService paisService, OperadoraService operadoraService, IdiomaService idiomaService, EsquemaPintura esquemaExistente) {
         super(owner, esquemaExistente == null ? "Nuevo Esquema" : "Editar Esquema", true);
         this.esquemaService = esquemaService;
@@ -95,7 +97,7 @@ public class EsquemaPinturaDialog extends JDialog {
         tableModel = new DefaultTableModel(columnNames, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return column >= 2;
+                return column >= 1;
             }
         };
         tableTraducciones = new JTable(tableModel);
@@ -109,17 +111,20 @@ public class EsquemaPinturaDialog extends JDialog {
         panelBotones.add(btnGuardar);
         this.add(panelBotones, BorderLayout.SOUTH);
         
-        // Listener para filtrar operadoras al cambiar país
-        comboPais.addActionListener(e -> filtrarOperadoras());
+        comboPais.addActionListener(e -> {
+            if (!isProgrammaticUpdate) {
+                filtrarOperadoras();
+            }
+        });
     }
 
     private void cargarDatos() {
-        // Cargar combos
+        isProgrammaticUpdate = true; // Empieza actualización programática
+
         List<Pais> paises = paisService.obtenerTodosLosPaises();
         comboPais.setModel(new DefaultComboBoxModel<>(paises.toArray(new Pais[0])));
         
         todasLasOperadoras = operadoraService.obtenerTodasLasOperadoras();
-        // Inicialmente cargamos todas, pero luego el filtro actuará si hay selección
         comboOperadora.setModel(new DefaultComboBoxModel<>(todasLasOperadoras.toArray(new Operadora[0])));
 
         List<Idioma> idiomas = idiomaService.obtenerTodosLosIdiomas();
@@ -129,7 +134,6 @@ public class EsquemaPinturaDialog extends JDialog {
             txtAnioInicio.setText(esquemaExistente.getAnioInicio() != null ? String.valueOf(esquemaExistente.getAnioInicio()) : "");
             txtAnioFin.setText(esquemaExistente.getAnioFin() != null ? String.valueOf(esquemaExistente.getAnioFin()) : "");
 
-            // Seleccionar país (esto disparará el listener y filtrará operadoras)
             for (int i = 0; i < comboPais.getItemCount(); i++) {
                 if (comboPais.getItemAt(i).getIdPais() == esquemaExistente.getIdPais()) {
                     comboPais.setSelectedIndex(i);
@@ -137,7 +141,11 @@ public class EsquemaPinturaDialog extends JDialog {
                 }
             }
             
-            // Seleccionar operadora (después de filtrar)
+            // Forzar filtrado de operadoras basado en el país
+            isProgrammaticUpdate = false;
+            filtrarOperadoras();
+            isProgrammaticUpdate = true;
+
             for (int i = 0; i < comboOperadora.getItemCount(); i++) {
                 if (comboOperadora.getItemAt(i).getIdOperadora() == esquemaExistente.getIdOperadora()) {
                     comboOperadora.setSelectedIndex(i);
@@ -158,14 +166,18 @@ public class EsquemaPinturaDialog extends JDialog {
                 tableModel.addRow(new Object[]{idioma.getId(), idioma.getNombre(), desc, codCol, col});
             }
         } else {
-            // Nuevo esquema
-            comboPais.setSelectedIndex(-1); // Ningún país seleccionado
-            filtrarOperadoras(); // Mostrar todas las operadoras
+            comboPais.setSelectedIndex(-1);
+            
+            isProgrammaticUpdate = false;
+            filtrarOperadoras();
+            isProgrammaticUpdate = true;
             
             for (Idioma idioma : idiomas) {
                 tableModel.addRow(new Object[]{idioma.getId(), idioma.getNombre(), "", "", ""});
             }
         }
+        
+        isProgrammaticUpdate = false; // Termina actualización programática
     }
 
     private void filtrarOperadoras() {
@@ -180,18 +192,22 @@ public class EsquemaPinturaDialog extends JDialog {
                     .collect(Collectors.toList());
         }
 
+        Operadora seleccionPrevia = (Operadora) comboOperadora.getSelectedItem();
+        
+        isProgrammaticUpdate = true;
         DefaultComboBoxModel<Operadora> model = new DefaultComboBoxModel<>(operadorasFiltradas.toArray(new Operadora[0]));
         comboOperadora.setModel(model);
-        
-        // Si estamos editando y acabamos de recargar, intentamos mantener la selección si es válida
-        if (esquemaExistente != null) {
-             for (int i = 0; i < comboOperadora.getItemCount(); i++) {
-                if (comboOperadora.getItemAt(i).getIdOperadora() == esquemaExistente.getIdOperadora()) {
+        comboOperadora.setSelectedIndex(-1);
+
+        if (seleccionPrevia != null) {
+            for (int i = 0; i < comboOperadora.getItemCount(); i++) {
+                if (comboOperadora.getItemAt(i).getIdOperadora() == seleccionPrevia.getIdOperadora()) {
                     comboOperadora.setSelectedIndex(i);
                     break;
                 }
             }
         }
+        isProgrammaticUpdate = false;
     }
 
     private void guardar() {

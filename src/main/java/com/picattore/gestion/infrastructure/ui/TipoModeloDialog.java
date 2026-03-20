@@ -47,7 +47,8 @@ public class TipoModeloDialog extends JDialog {
         tableModel = new DefaultTableModel(columnNames, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return column == 2 || column == 3;
+                // Al ocultar la columna 0, Nombre es la 1 y Descripción la 2 en la VISTA
+                return column == 1 || column == 2;
             }
         };
         tableTraducciones = new JTable(tableModel);
