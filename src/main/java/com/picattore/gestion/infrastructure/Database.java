@@ -175,18 +175,29 @@ public class Database {
                     "id_epoca INTEGER, " +
                     "id_esquema_pintura INTEGER, " +
                     "id_operadora INTEGER, " +
+                    "fecha_fabricacion TEXT, " +
+                    "fecha_baja TEXT, " +
+                    "fecha_inicio_pintura TEXT, " +
+                    "fecha_final_pintura TEXT, " +
+                    "descripcion_tecnica TEXT, " +
+                    "velocidad_maxima INTEGER, " +
                     "FOREIGN KEY(id_tipo_vehiculo) REFERENCES Tipo_vehiculo(id_tipo_vehiculo), " +
                     "FOREIGN KEY(id_pais) REFERENCES Paises(id_pais), " +
                     "FOREIGN KEY(id_epoca) REFERENCES Epocas(id_epoca), " +
                     "FOREIGN KEY(id_esquema_pintura) REFERENCES Esquema_pintura(id_esquema_pintura), " +
                     "FOREIGN KEY(id_operadora) REFERENCES Operadoras(id_operadora))");
                     
-            try {
-                stmt.execute("ALTER TABLE vehiculo_real ADD COLUMN nombre TEXT");
-                stmt.execute("ALTER TABLE vehiculo_real ADD COLUMN apodo TEXT");
-            } catch (Exception e) { }
+            // Esto soluciona si SQLite no creó las columnas en una BBDD existente sin perder datos
+            try { stmt.execute("ALTER TABLE vehiculo_real ADD COLUMN nombre TEXT"); } catch (Exception e) { }
+            try { stmt.execute("ALTER TABLE vehiculo_real ADD COLUMN apodo TEXT"); } catch (Exception e) { }
+            try { stmt.execute("ALTER TABLE vehiculo_real ADD COLUMN fecha_fabricacion TEXT"); } catch (Exception e) { }
+            try { stmt.execute("ALTER TABLE vehiculo_real ADD COLUMN fecha_baja TEXT"); } catch (Exception e) { }
+            try { stmt.execute("ALTER TABLE vehiculo_real ADD COLUMN fecha_inicio_pintura TEXT"); } catch (Exception e) { }
+            try { stmt.execute("ALTER TABLE vehiculo_real ADD COLUMN fecha_final_pintura TEXT"); } catch (Exception e) { }
+            try { stmt.execute("ALTER TABLE vehiculo_real ADD COLUMN descripcion_tecnica TEXT"); } catch (Exception e) { }
+            try { stmt.execute("ALTER TABLE vehiculo_real ADD COLUMN velocidad_maxima INTEGER"); } catch (Exception e) { }
 
-            // --- NUEVA TABLA REFERENCIA_MODELO ---
+            // Tabla REFERENCIA_MODELO
             stmt.execute("CREATE TABLE IF NOT EXISTS referencia_modelo (" +
                     "id INTEGER PRIMARY KEY, " +
                     "id_fabricante INTEGER, " +
@@ -198,6 +209,45 @@ public class Database {
                     "FOREIGN KEY(id_fabricante) REFERENCES Fabricantes(id_fabricante), " +
                     "FOREIGN KEY(id_vehiculo_real) REFERENCES vehiculo_real(id), " +
                     "FOREIGN KEY(id_escala) REFERENCES Escalas(id_escala))");
+
+            // Tablas para DECODERS
+            stmt.execute("CREATE TABLE IF NOT EXISTS decoder (" +
+                    "id INTEGER PRIMARY KEY, " +
+                    "id_fabricante INTEGER, " +
+                    "direccion TEXT, " +
+                    "comp_carga INTEGER, " + // booleano 0 o 1
+                    "sonido INTEGER, " +      // booleano 0 o 1
+                    "tipo_conector TEXT, " +
+                    "FOREIGN KEY(id_fabricante) REFERENCES Fabricantes(id_fabricante))");
+
+            stmt.execute("CREATE TABLE IF NOT EXISTS deco_cv (" +
+                    "id INTEGER PRIMARY KEY, " +
+                    "id_decoder INTEGER, " +
+                    "cv TEXT, " +
+                    "dato TEXT, " +
+                    "FOREIGN KEY(id_decoder) REFERENCES decoder(id))");
+
+            stmt.execute("CREATE TABLE IF NOT EXISTS deco_funcion (" +
+                    "id INTEGER PRIMARY KEY, " +
+                    "id_decoder INTEGER, " +
+                    "funcion TEXT, " +
+                    "tipo_funcion TEXT, " + // on/off o switch
+                    "descripcion TEXT, " +
+                    "FOREIGN KEY(id_decoder) REFERENCES decoder(id))");
+
+            // --- NUEVAS TABLAS DUEÑOS Y MODELOS ---
+            stmt.execute("CREATE TABLE IF NOT EXISTS duenos (" +
+                    "id INTEGER PRIMARY KEY, " +
+                    "nombre TEXT)");
+
+            stmt.execute("CREATE TABLE IF NOT EXISTS modelo (" +
+                    "id INTEGER PRIMARY KEY, " +
+                    "id_decoder INTEGER, " +
+                    "id_referencia_modelo INTEGER, " +
+                    "id_dueno INTEGER, " +
+                    "FOREIGN KEY(id_decoder) REFERENCES decoder(id), " +
+                    "FOREIGN KEY(id_referencia_modelo) REFERENCES referencia_modelo(id), " +
+                    "FOREIGN KEY(id_dueno) REFERENCES duenos(id))");
 
         } catch (Exception e) {
             System.err.println("Error DB: " + e.getMessage());

@@ -8,6 +8,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.beans.PropertyVetoException;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,6 +26,9 @@ public class MainFrame extends JFrame {
     private TipoModeloService tipoModeloService;
     private VehiculoRealService vehiculoRealService;
     private ReferenciaModeloService referenciaModeloService;
+    private DecoderService decoderService;
+    private DuenoService duenoService;
+    private ModeloService modeloService;
     private JMenu menuIdioma;
 
     public MainFrame() {
@@ -66,6 +70,15 @@ public class MainFrame extends JFrame {
         SqliteReferenciaModeloRepository referenciaModeloRepository = new SqliteReferenciaModeloRepository();
         referenciaModeloService = new ReferenciaModeloService(referenciaModeloRepository);
 
+        SqliteDecoderRepository decoderRepository = new SqliteDecoderRepository();
+        decoderService = new DecoderService(decoderRepository);
+
+        SqliteDuenoRepository duenoRepository = new SqliteDuenoRepository();
+        duenoService = new DuenoService(duenoRepository);
+
+        SqliteModeloRepository modeloRepository = new SqliteModeloRepository();
+        modeloService = new ModeloService(modeloRepository);
+
         // Configurar el panel de escritorio
         desktopPane = new JDesktopPane();
         this.add(desktopPane, BorderLayout.CENTER);
@@ -81,23 +94,21 @@ public class MainFrame extends JFrame {
 
         // Menú Material Real
         JMenu menuMaterialReal = new JMenu("Material Real");
+        JMenuItem itemModelos = new JMenuItem("Modelos");
+        itemModelos.addActionListener(e -> abrirVentanaModelos());
+        menuMaterialReal.add(itemModelos);
+
         JMenuItem itemVehiculosReales = new JMenuItem("Vehículos reales");
-        itemVehiculosReales.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                abrirVentanaVehiculosReales();
-            }
-        });
+        itemVehiculosReales.addActionListener(e -> abrirVentanaVehiculosReales());
         menuMaterialReal.add(itemVehiculosReales);
         
         JMenuItem itemReferencias = new JMenuItem("Referencias Modelos");
-        itemReferencias.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                abrirVentanaReferencias();
-            }
-        });
+        itemReferencias.addActionListener(e -> abrirVentanaReferencias());
         menuMaterialReal.add(itemReferencias);
+
+        JMenuItem itemDecoders = new JMenuItem("Decoders");
+        itemDecoders.addActionListener(e -> abrirVentanaDecoders());
+        menuMaterialReal.add(itemDecoders);
         
         menuBar.add(menuMaterialReal);
 
@@ -105,39 +116,19 @@ public class MainFrame extends JFrame {
         JMenu menuDatos = new JMenu("Datos");
         
         JMenuItem itemOperadoras = new JMenuItem("Operadoras");
-        itemOperadoras.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                abrirVentanaOperadoras();
-            }
-        });
+        itemOperadoras.addActionListener(e -> abrirVentanaOperadoras());
         menuDatos.add(itemOperadoras);
 
         JMenuItem itemEsquemas = new JMenuItem("Esquemas de Pintura");
-        itemEsquemas.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                abrirVentanaEsquemas();
-            }
-        });
+        itemEsquemas.addActionListener(e -> abrirVentanaEsquemas());
         menuDatos.add(itemEsquemas);
 
         JMenuItem itemFabricantes = new JMenuItem("Fabricantes");
-        itemFabricantes.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                abrirVentanaFabricantes();
-            }
-        });
+        itemFabricantes.addActionListener(e -> abrirVentanaFabricantes());
         menuDatos.add(itemFabricantes);
 
         JMenuItem itemTiposModelo = new JMenuItem("Tipos de Modelo");
-        itemTiposModelo.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                abrirVentanaTiposModelo();
-            }
-        });
+        itemTiposModelo.addActionListener(e -> abrirVentanaTiposModelo());
         menuDatos.add(itemTiposModelo);
 
         menuBar.add(menuDatos);
@@ -145,49 +136,28 @@ public class MainFrame extends JFrame {
         // Menú Configuración
         JMenu menuConfiguracion = new JMenu("Configuración");
         
+        JMenuItem itemDuenos = new JMenuItem("Dueños");
+        itemDuenos.addActionListener(e -> abrirVentanaDuenos());
+        menuConfiguracion.add(itemDuenos);
+
         JMenuItem itemIdiomas = new JMenuItem("Idiomas");
-        itemIdiomas.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                abrirVentanaIdiomas();
-            }
-        });
+        itemIdiomas.addActionListener(e -> abrirVentanaIdiomas());
         menuConfiguracion.add(itemIdiomas);
 
         JMenuItem itemEpocas = new JMenuItem("Épocas");
-        itemEpocas.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                abrirVentanaEpocas();
-            }
-        });
+        itemEpocas.addActionListener(e -> abrirVentanaEpocas());
         menuConfiguracion.add(itemEpocas);
 
         JMenuItem itemPaises = new JMenuItem("Países");
-        itemPaises.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                abrirVentanaPaises();
-            }
-        });
+        itemPaises.addActionListener(e -> abrirVentanaPaises());
         menuConfiguracion.add(itemPaises);
 
         JMenuItem itemEscalas = new JMenuItem("Escalas");
-        itemEscalas.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                abrirVentanaEscalas();
-            }
-        });
+        itemEscalas.addActionListener(e -> abrirVentanaEscalas());
         menuConfiguracion.add(itemEscalas);
 
         JMenuItem itemTiposVehiculo = new JMenuItem("Tipos de Vehículo");
-        itemTiposVehiculo.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                abrirVentanaTiposVehiculo();
-            }
-        });
+        itemTiposVehiculo.addActionListener(e -> abrirVentanaTiposVehiculo());
         menuConfiguracion.add(itemTiposVehiculo);
 
         menuBar.add(menuConfiguracion);
@@ -486,6 +456,74 @@ public class MainFrame extends JFrame {
         try {
             refFrame.setSelected(true);
         } catch (java.beans.PropertyVetoException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void abrirVentanaDecoders() {
+        for (JInternalFrame frame : desktopPane.getAllFrames()) {
+            if (frame instanceof DecoderInternalFrame) {
+                try {
+                    frame.setSelected(true);
+                } catch (java.beans.PropertyVetoException e) {
+                    e.printStackTrace();
+                }
+                return;
+            }
+        }
+
+        DecoderInternalFrame decoderFrame = new DecoderInternalFrame(decoderService, fabricanteService);
+        desktopPane.add(decoderFrame);
+        decoderFrame.setVisible(true);
+        try {
+            decoderFrame.setSelected(true);
+        } catch (java.beans.PropertyVetoException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void abrirVentanaDuenos() {
+        for (JInternalFrame frame : desktopPane.getAllFrames()) {
+            if (frame instanceof DuenoInternalFrame) {
+                try {
+                    frame.setSelected(true);
+                } catch (java.beans.PropertyVetoException e) {
+                    e.printStackTrace();
+                }
+                return;
+            }
+        }
+
+        DuenoInternalFrame duenoFrame = new DuenoInternalFrame(duenoService);
+        desktopPane.add(duenoFrame);
+        duenoFrame.setVisible(true);
+        try {
+            duenoFrame.setSelected(true);
+        } catch (java.beans.PropertyVetoException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void abrirVentanaModelos() {
+        for (JInternalFrame frame : desktopPane.getAllFrames()) {
+            if (frame instanceof ModeloInternalFrame) {
+                try {
+                    frame.setSelected(true);
+                    frame.setMaximum(true); // Se maximiza si ya está abierta
+                } catch (PropertyVetoException e) {
+                    e.printStackTrace();
+                }
+                return;
+            }
+        }
+
+        ModeloInternalFrame modeloFrame = new ModeloInternalFrame(modeloService, decoderService, referenciaModeloService, duenoService, fabricanteService, vehiculoRealService, escalaService, tipoVehiculoService, paisService, epocaService, esquemaPinturaService, operadoraService, idiomaService);
+        desktopPane.add(modeloFrame);
+        modeloFrame.setVisible(true);
+        try {
+            modeloFrame.setSelected(true);
+            modeloFrame.setMaximum(true); // Se maximiza al abrirla por primera vez
+        } catch (PropertyVetoException e) {
             e.printStackTrace();
         }
     }

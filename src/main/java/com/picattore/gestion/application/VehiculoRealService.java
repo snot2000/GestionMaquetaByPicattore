@@ -13,8 +13,8 @@ public class VehiculoRealService {
         this.vehiculoRealRepository = vehiculoRealRepository;
     }
 
-    public void crearVehiculoReal(String nombre, String apodo, String numeracion, String uid, Integer idTipoVehiculo, Integer idPais, Integer idEpoca, Integer idEsquemaPintura, Integer idOperadora) {
-        VehiculoReal nuevoVehiculo = new VehiculoReal(nombre, apodo, numeracion, uid, idTipoVehiculo, idPais, idEpoca, idEsquemaPintura, idOperadora);
+    public void crearVehiculoReal(String nombre, String apodo, String numeracion, String uid, Integer idTipoVehiculo, Integer idPais, Integer idEpoca, Integer idEsquemaPintura, Integer idOperadora, String fechaFabricacion, String fechaBaja, String fechaInicioPintura, String fechaFinalPintura, String descripcionTecnica, Integer velocidadMaxima) {
+        VehiculoReal nuevoVehiculo = new VehiculoReal(nombre, apodo, numeracion, uid, idTipoVehiculo, idPais, idEpoca, idEsquemaPintura, idOperadora, fechaFabricacion, fechaBaja, fechaInicioPintura, fechaFinalPintura, descripcionTecnica, velocidadMaxima);
         vehiculoRealRepository.guardar(nuevoVehiculo);
     }
 
@@ -26,7 +26,7 @@ public class VehiculoRealService {
         return vehiculoRealRepository.buscarPorId(id);
     }
 
-    public void actualizarVehiculoReal(int id, String nombre, String apodo, String numeracion, String uid, Integer idTipoVehiculo, Integer idPais, Integer idEpoca, Integer idEsquemaPintura, Integer idOperadora) {
+    public void actualizarVehiculoReal(int id, String nombre, String apodo, String numeracion, String uid, Integer idTipoVehiculo, Integer idPais, Integer idEpoca, Integer idEsquemaPintura, Integer idOperadora, String fechaFabricacion, String fechaBaja, String fechaInicioPintura, String fechaFinalPintura, String descripcionTecnica, Integer velocidadMaxima) {
         Optional<VehiculoReal> vehiculoExistente = vehiculoRealRepository.buscarPorId(id);
         if (vehiculoExistente.isPresent()) {
             VehiculoReal vehiculo = vehiculoExistente.get();
@@ -39,6 +39,12 @@ public class VehiculoRealService {
             vehiculo.setIdEpoca(idEpoca);
             vehiculo.setIdEsquemaPintura(idEsquemaPintura);
             vehiculo.setIdOperadora(idOperadora);
+            vehiculo.setFechaFabricacion(fechaFabricacion);
+            vehiculo.setFechaBaja(fechaBaja);
+            vehiculo.setFechaInicioPintura(fechaInicioPintura);
+            vehiculo.setFechaFinalPintura(fechaFinalPintura);
+            vehiculo.setDescripcionTecnica(descripcionTecnica);
+            vehiculo.setVelocidadMaxima(velocidadMaxima);
             vehiculoRealRepository.actualizar(vehiculo);
         } else {
             System.err.println("Vehículo Real con ID " + id + " no encontrado.");

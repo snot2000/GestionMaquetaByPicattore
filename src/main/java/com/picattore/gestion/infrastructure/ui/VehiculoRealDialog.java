@@ -21,6 +21,8 @@ public class VehiculoRealDialog extends JDialog {
     private final VehiculoReal vehiculoExistente;
 
     private JTextField txtNombre, txtApodo, txtNumeracion, txtUid;
+    private JTextField txtFechaFabricacion, txtFechaBaja, txtFechaInicioPintura, txtFechaFinalPintura, txtVelocidadMaxima;
+    private JTextArea txtDescripcionTecnica;
     private JComboBox<TipoVehiculo> comboTipoVehiculo;
     private JComboBox<Pais> comboPais;
     private JComboBox<Epoca> comboEpoca;
@@ -43,7 +45,7 @@ public class VehiculoRealDialog extends JDialog {
         this.idiomaService = idiomaService;
         this.vehiculoExistente = vehiculoExistente;
 
-        this.setSize(500, 450);
+        this.setSize(1200, 700); // Ancho duplicado y alto ajustado
         this.setLayout(new BorderLayout());
 
         inicializarComponentes();
@@ -51,8 +53,12 @@ public class VehiculoRealDialog extends JDialog {
     }
 
     private void inicializarComponentes() {
-        JPanel formPanel = new JPanel(new GridLayout(0, 2, 5, 5));
-        formPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        JPanel mainPanel = new JPanel();
+        mainPanel.setLayout(new BorderLayout(10, 10));
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        // Panel de formulario con 4 columnas (2 pares de Label-Campo)
+        JPanel formPanel = new JPanel(new GridLayout(0, 4, 15, 10));
 
         formPanel.add(new JLabel("Nombre:"));
         txtNombre = new JTextField();
@@ -167,7 +173,35 @@ public class VehiculoRealDialog extends JDialog {
         });
         formPanel.add(comboEsquema);
 
-        this.add(formPanel, BorderLayout.CENTER);
+        formPanel.add(new JLabel("Velocidad Máxima:"));
+        txtVelocidadMaxima = new JTextField();
+        formPanel.add(txtVelocidadMaxima);
+
+        formPanel.add(new JLabel("Fecha Fabricación:"));
+        txtFechaFabricacion = new JTextField();
+        formPanel.add(txtFechaFabricacion);
+
+        formPanel.add(new JLabel("Fecha Baja:"));
+        txtFechaBaja = new JTextField();
+        formPanel.add(txtFechaBaja);
+
+        formPanel.add(new JLabel("Fecha Inicio Pintura:"));
+        txtFechaInicioPintura = new JTextField();
+        formPanel.add(txtFechaInicioPintura);
+
+        formPanel.add(new JLabel("Fecha Final Pintura:"));
+        txtFechaFinalPintura = new JTextField();
+        formPanel.add(txtFechaFinalPintura);
+
+        mainPanel.add(formPanel, BorderLayout.NORTH);
+
+        // Nuevo campo descripción técnica ocupando el resto (doble de alto)
+        txtDescripcionTecnica = new JTextArea(10, 20); // Altura incrementada
+        JScrollPane scrollDesc = new JScrollPane(txtDescripcionTecnica);
+        scrollDesc.setBorder(BorderFactory.createTitledBorder("Descripción Técnica"));
+        mainPanel.add(scrollDesc, BorderLayout.CENTER);
+
+        this.add(mainPanel, BorderLayout.CENTER);
 
         JPanel panelBotones = new JPanel();
         JButton btnGuardar = new JButton("Guardar");
@@ -219,6 +253,12 @@ public class VehiculoRealDialog extends JDialog {
             txtApodo.setText(vehiculoExistente.getApodo());
             txtNumeracion.setText(vehiculoExistente.getNumeracion());
             txtUid.setText(vehiculoExistente.getUid());
+            txtVelocidadMaxima.setText(vehiculoExistente.getVelocidadMaxima() != null ? String.valueOf(vehiculoExistente.getVelocidadMaxima()) : "");
+            txtFechaFabricacion.setText(vehiculoExistente.getFechaFabricacion());
+            txtFechaBaja.setText(vehiculoExistente.getFechaBaja());
+            txtFechaInicioPintura.setText(vehiculoExistente.getFechaInicioPintura());
+            txtFechaFinalPintura.setText(vehiculoExistente.getFechaFinalPintura());
+            txtDescripcionTecnica.setText(vehiculoExistente.getDescripcionTecnica());
 
             if (vehiculoExistente.getIdTipoVehiculo() != null) {
                 for (int i = 0; i < comboTipoVehiculo.getItemCount(); i++) {
@@ -359,10 +399,20 @@ public class VehiculoRealDialog extends JDialog {
         Integer idEsquema = esquema != null ? esquema.getIdEsquemaPintura() : null;
         Integer idOperadora = operadora != null ? operadora.getIdOperadora() : null;
 
+        Integer velocidadMaxima = null;
+        if (!txtVelocidadMaxima.getText().isEmpty()) {
+            try {
+                velocidadMaxima = Integer.parseInt(txtVelocidadMaxima.getText());
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(this, "La Velocidad Máxima debe ser un número entero.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+        }
+
         if (vehiculoExistente == null) {
-            vehiculoRealService.crearVehiculoReal(txtNombre.getText(), txtApodo.getText(), txtNumeracion.getText(), txtUid.getText(), idTipoVehiculo, idPais, idEpoca, idEsquema, idOperadora);
+            vehiculoRealService.crearVehiculoReal(txtNombre.getText(), txtApodo.getText(), txtNumeracion.getText(), txtUid.getText(), idTipoVehiculo, idPais, idEpoca, idEsquema, idOperadora, txtFechaFabricacion.getText(), txtFechaBaja.getText(), txtFechaInicioPintura.getText(), txtFechaFinalPintura.getText(), txtDescripcionTecnica.getText(), velocidadMaxima);
         } else {
-            vehiculoRealService.actualizarVehiculoReal(vehiculoExistente.getId(), txtNombre.getText(), txtApodo.getText(), txtNumeracion.getText(), txtUid.getText(), idTipoVehiculo, idPais, idEpoca, idEsquema, idOperadora);
+            vehiculoRealService.actualizarVehiculoReal(vehiculoExistente.getId(), txtNombre.getText(), txtApodo.getText(), txtNumeracion.getText(), txtUid.getText(), idTipoVehiculo, idPais, idEpoca, idEsquema, idOperadora, txtFechaFabricacion.getText(), txtFechaBaja.getText(), txtFechaInicioPintura.getText(), txtFechaFinalPintura.getText(), txtDescripcionTecnica.getText(), velocidadMaxima);
         }
         dispose();
     }

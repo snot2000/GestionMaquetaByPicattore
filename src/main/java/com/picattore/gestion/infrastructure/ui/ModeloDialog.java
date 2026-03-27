@@ -30,6 +30,7 @@ public class ModeloDialog extends JDialog {
 
     private JComboBox<Dueno> comboDueno;
     private JComboBox<Decoder> comboDecoder;
+    private JTextField txtDireccionDecoder;
     private JComboBox<ReferenciaModelo> comboReferencia;
 
     // Campos de detalle de Referencia Modelo
@@ -85,7 +86,7 @@ public class ModeloDialog extends JDialog {
         });
         panelBasico.add(comboDueno);
 
-        panelBasico.add(new JLabel("Decoder (Dirección):"));
+        panelBasico.add(new JLabel("Decoder:"));
         comboDecoder = new JComboBox<>();
         comboDecoder.setRenderer(new DefaultListCellRenderer() {
             @Override
@@ -93,12 +94,38 @@ public class ModeloDialog extends JDialog {
                 super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
                 if (value instanceof Decoder) {
                     Decoder d = (Decoder) value;
-                    setText(d.getId() + " - " + d.getDireccion());
+                    String nombreFabricante = "N/A";
+                    if (d.getIdFabricante() != null) {
+                        Optional<Fabricante> fabOpt = fabricanteService.obtenerFabricantePorId(d.getIdFabricante());
+                        if (fabOpt.isPresent()) {
+                            nombreFabricante = fabOpt.get().getNombre();
+                        }
+                    }
+                    setText("Dirección " + d.getDireccion() + " - " + nombreFabricante + " - " + d.getTipoConector());
                 }
                 return this;
             }
         });
-        panelBasico.add(comboDecoder);
+        
+        JPanel panelDecoder = new JPanel(new BorderLayout(5, 0));
+        panelDecoder.add(comboDecoder, BorderLayout.CENTER);
+        JButton btnAddDecoder = new JButton("+");
+        btnAddDecoder.addActionListener(e -> agregarDecoder());
+        panelDecoder.add(btnAddDecoder, BorderLayout.EAST);
+        panelBasico.add(panelDecoder);
+
+        panelBasico.add(new JLabel("Modificar Dirección Decoder:"));
+        txtDireccionDecoder = new JTextField();
+        panelBasico.add(txtDireccionDecoder);
+
+        comboDecoder.addActionListener(e -> {
+            Decoder d = (Decoder) comboDecoder.getSelectedItem();
+            if (d != null) {
+                txtDireccionDecoder.setText(d.getDireccion());
+            } else {
+                txtDireccionDecoder.setText("");
+            }
+        });
 
         panelBasico.add(new JLabel("Referencia Modelo:"));
         comboReferencia = new JComboBox<>();
@@ -108,12 +135,27 @@ public class ModeloDialog extends JDialog {
                 super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
                 if (value instanceof ReferenciaModelo) {
                     ReferenciaModelo r = (ReferenciaModelo) value;
-                    setText(r.getId() + " - " + r.getReferencia());
+                    
+                    String nombreFabricante = "N/A";
+                    if (r.getIdFabricante() != null) {
+                        Optional<Fabricante> fabOpt = fabricanteService.obtenerFabricantePorId(r.getIdFabricante());
+                        if (fabOpt.isPresent()) {
+                            nombreFabricante = fabOpt.get().getNombre();
+                        }
+                    }
+                    
+                    setText(nombreFabricante + " - " + r.getReferencia());
                 }
                 return this;
             }
         });
-        panelBasico.add(comboReferencia);
+        
+        JPanel panelReferencia = new JPanel(new BorderLayout(5, 0));
+        panelReferencia.add(comboReferencia, BorderLayout.CENTER);
+        JButton btnAddReferencia = new JButton("+");
+        btnAddReferencia.addActionListener(e -> agregarReferencia());
+        panelReferencia.add(btnAddReferencia, BorderLayout.EAST);
+        panelBasico.add(panelReferencia);
 
         mainPanel.add(panelBasico);
         mainPanel.add(Box.createVerticalStrut(10));
@@ -199,6 +241,46 @@ public class ModeloDialog extends JDialog {
 
         // Listener para actualizar detalles cuando cambia la referencia
         comboReferencia.addActionListener(e -> actualizarDetallesReferencia());
+    }
+
+    private void agregarDecoder() {
+        int maxIdBefore = decoderService.obtenerTodosLosDecoders().stream().mapToInt(Decoder::getId).max().orElse(0);
+        
+        DecoderDialog dialog = new DecoderDialog((Frame) SwingUtilities.getWindowAncestor(this), decoderService, fabricanteService, null);
+        dialog.setLocationRelativeTo(this);
+        dialog.setVisible(true);
+        
+        List<Decoder> nuevos = decoderService.obtenerTodosLosDecoders();
+        comboDecoder.setModel(new DefaultComboBoxModel<>(nuevos.toArray(new Decoder[0])));
+        
+        nuevos.stream().filter(d -> d.getId() > maxIdBefore).findFirst().ifPresent(d -> {
+            for (int i = 0; i < comboDecoder.getItemCount(); i++) {
+                if (comboDecoder.getItemAt(i).getId() == d.getId()) {
+                    comboDecoder.setSelectedIndex(i);
+                    break;
+                }
+            }
+        });
+    }
+
+    private void agregarReferencia() {
+        int maxIdBefore = referenciaModeloService.obtenerTodasLasReferencias().stream().mapToInt(ReferenciaModelo::getId).max().orElse(0);
+        
+        ReferenciaModeloDialog dialog = new ReferenciaModeloDialog((Frame) SwingUtilities.getWindowAncestor(this), referenciaModeloService, fabricanteService, vehiculoRealService, escalaService, tipoVehiculoService, paisService, epocaService, esquemaService, operadoraService, idiomaService, null);
+        dialog.setLocationRelativeTo(this);
+        dialog.setVisible(true);
+        
+        List<ReferenciaModelo> nuevas = referenciaModeloService.obtenerTodasLasReferencias();
+        comboReferencia.setModel(new DefaultComboBoxModel<>(nuevas.toArray(new ReferenciaModelo[0])));
+        
+        nuevas.stream().filter(r -> r.getId() > maxIdBefore).findFirst().ifPresent(r -> {
+            for (int i = 0; i < comboReferencia.getItemCount(); i++) {
+                if (comboReferencia.getItemAt(i).getId() == r.getId()) {
+                    comboReferencia.setSelectedIndex(i);
+                    break;
+                }
+            }
+        });
     }
 
     private void cargarDatos() {
@@ -345,6 +427,27 @@ public class ModeloDialog extends JDialog {
         Integer idDueno = dueno != null ? dueno.getId() : null;
         Integer idDecoder = decoder != null ? decoder.getId() : null;
         Integer idRef = ref != null ? ref.getId() : null;
+
+        // Actualizar dirección del decoder si se ha modificado en el textfield
+        if (decoder != null) {
+            String nuevaDir = txtDireccionDecoder.getText().trim();
+            if (!nuevaDir.isEmpty() && !nuevaDir.equals(decoder.getDireccion())) {
+                Optional<Decoder> decOpt = decoderService.obtenerDecoderPorId(decoder.getId());
+                if (decOpt.isPresent()) {
+                    Decoder fullDec = decOpt.get();
+                    decoderService.actualizarDecoder(
+                            fullDec.getId(),
+                            fullDec.getIdFabricante(),
+                            nuevaDir, // nueva dirección
+                            fullDec.isCompCarga(),
+                            fullDec.isSonido(),
+                            fullDec.getTipoConector(),
+                            fullDec.getCvs(),
+                            fullDec.getFunciones()
+                    );
+                }
+            }
+        }
 
         if (modeloExistente == null) {
             modeloService.crearModelo(idDecoder, idRef, idDueno);
