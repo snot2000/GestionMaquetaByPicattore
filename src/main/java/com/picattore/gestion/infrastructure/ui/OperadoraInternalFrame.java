@@ -85,7 +85,9 @@ public class OperadoraInternalFrame extends JInternalFrame implements LanguageCh
         // Ocultar la columna ID (índice 0) de la vista
         table.getColumnModel().removeColumn(table.getColumnModel().getColumn(0));
         
-        // Ajustar anchos
+        // Ajustar anchos para que "Nombre" ocupe todo el espacio restante
+        // Usamos AUTO_RESIZE_LAST_COLUMN para que la última (Año D.) se adapte si es necesario, 
+        // pero asignamos un preferredWidth muy alto a Nombre
         table.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
         
         // Índices en vista: País(0), Código(1), Nombre(2), Año Creación(3), Año Disolución(4)
@@ -98,15 +100,16 @@ public class OperadoraInternalFrame extends JInternalFrame implements LanguageCh
         colCodigo.setMaxWidth(150);
         
         TableColumn colNombre = table.getColumnModel().getColumn(2);
-        colNombre.setPreferredWidth(700); 
+        colNombre.setPreferredWidth(800); // Darle el mayor peso posible a la columna "Nombre"
         
+        // Reducir tamaño de las columnas de año a aprox. un 50% de lo normal para caber el texto (un año son 4 digitos ~30px + padding + título)
         TableColumn colAnioC = table.getColumnModel().getColumn(3);
-        colAnioC.setPreferredWidth(100); // 50% extra sobre el por defecto mínimo
-        colAnioC.setMaxWidth(120);
+        colAnioC.setPreferredWidth(80); 
+        colAnioC.setMaxWidth(100); 
         
         TableColumn colAnioD = table.getColumnModel().getColumn(4);
-        colAnioD.setPreferredWidth(110); // 50% extra sobre el por defecto mínimo
-        colAnioD.setMaxWidth(130);
+        colAnioD.setPreferredWidth(90);
+        colAnioD.setMaxWidth(110);
 
         // Ordenar por defecto por Nombre ascendente (Compatible Java 8+)
         List<RowSorter.SortKey> sortKeys = new ArrayList<>();
@@ -148,7 +151,7 @@ public class OperadoraInternalFrame extends JInternalFrame implements LanguageCh
         if (text.trim().isEmpty()) {
             sorter.setRowFilter(null);
         } else {
-            sorter.setRowFilter(RowFilter.regexFilter("(?i)" + text));
+            sorter.setRowFilter(RowFilter.regexFilter("(?i)" + text)); // (?i) para case-insensitive
         }
     }
 
