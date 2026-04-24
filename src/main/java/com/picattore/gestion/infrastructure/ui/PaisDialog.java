@@ -49,8 +49,8 @@ public class PaisDialog extends JDialog {
         tableModel = new DefaultTableModel(columnNames, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                // isCellEditable recibe siempre el índice de la columna en el MODELO.
-                // Como "Nombre" es la columna 2 en el modelo, devolvemos column == 2.
+                // En el DefaultTableModel isCellEditable se llama con índices del modelo.
+                // Nombre es la columna 2.
                 return column == 2;
             }
         };

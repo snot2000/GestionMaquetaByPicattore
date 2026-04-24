@@ -6,29 +6,27 @@ import com.picattore.gestion.infrastructure.*;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.beans.PropertyVetoException;
 import java.util.List;
 import java.util.Optional;
 
 public class MainFrame extends JFrame {
 
-    private JDesktopPane desktopPane;
-    private IdiomaService idiomaService;
-    private EpocaService epocaService;
-    private PaisService paisService;
-    private EscalaService escalaService;
-    private TipoVehiculoService tipoVehiculoService;
-    private OperadoraService operadoraService;
-    private EsquemaPinturaService esquemaPinturaService;
-    private FabricanteService fabricanteService;
-    private TipoModeloService tipoModeloService;
-    private VehiculoRealService vehiculoRealService;
-    private ReferenciaModeloService referenciaModeloService;
-    private DecoderService decoderService;
-    private DuenoService duenoService;
-    private ModeloService modeloService;
+    private final JDesktopPane desktopPane;
+    private final IdiomaService idiomaService;
+    private final EpocaService epocaService;
+    private final PaisService paisService;
+    private final EscalaService escalaService;
+    private final TipoVehiculoService tipoVehiculoService;
+    private final OperadoraService operadoraService;
+    private final EsquemaPinturaService esquemaPinturaService;
+    private final FabricanteService fabricanteService;
+    private final TipoModeloService tipoModeloService;
+    private final VehiculoRealService vehiculoRealService;
+    private final ReferenciaModeloService referenciaModeloService;
+    private final DecoderService decoderService;
+    private final DuenoService duenoService;
+    private final ModeloService modeloService;
     private JMenu menuIdioma;
 
     public MainFrame() {
@@ -141,6 +139,21 @@ public class MainFrame extends JFrame {
         menuBar.add(menuDatos);
 
         // Menú Configuración
+        JMenu menuConfiguracion = crearMenuConfiguracion();
+        menuBar.add(menuConfiguracion);
+
+        // Añadir espacio flexible para empujar el idioma a la derecha
+        menuBar.add(Box.createHorizontalGlue());
+
+        // Menú de Idioma Principal
+        menuIdioma = new JMenu("Idioma");
+        menuBar.add(menuIdioma);
+        actualizarMenuIdiomas();
+
+        this.setJMenuBar(menuBar);
+    }
+
+    private JMenu crearMenuConfiguracion() {
         JMenu menuConfiguracion = new JMenu("Configuración");
         
         JMenuItem itemDuenos = new JMenuItem("Dueños");
@@ -167,17 +180,7 @@ public class MainFrame extends JFrame {
         itemTiposVehiculo.addActionListener(e -> abrirVentanaTiposVehiculo());
         menuConfiguracion.add(itemTiposVehiculo);
 
-        menuBar.add(menuConfiguracion);
-
-        // Añadir espacio flexible para empujar el idioma a la derecha
-        menuBar.add(Box.createHorizontalGlue());
-
-        // Menú de Idioma Principal
-        menuIdioma = new JMenu("Idioma");
-        menuBar.add(menuIdioma);
-        actualizarMenuIdiomas();
-
-        this.setJMenuBar(menuBar);
+        return menuConfiguracion;
     }
 
     public void actualizarMenuIdiomas() {
@@ -232,7 +235,7 @@ public class MainFrame extends JFrame {
                     frame.setSelected(true);
                     frame.setMaximum(true);
                 } catch (PropertyVetoException e) {
-                    e.printStackTrace();
+                    System.err.println("No se pudo maximizar la ventana: " + e.getMessage());
                 }
                 return;
             }
@@ -249,7 +252,7 @@ public class MainFrame extends JFrame {
             listadoFrame.setSelected(true);
             listadoFrame.setMaximum(true);
         } catch (PropertyVetoException e) {
-            e.printStackTrace();
+            System.err.println("No se pudo maximizar la ventana: " + e.getMessage());
         }
     }
 
@@ -259,7 +262,7 @@ public class MainFrame extends JFrame {
                 try {
                     frame.setSelected(true);
                 } catch (java.beans.PropertyVetoException e) {
-                    e.printStackTrace();
+                    System.err.println("No se pudo seleccionar la ventana: " + e.getMessage());
                 }
                 return;
             }
@@ -271,7 +274,7 @@ public class MainFrame extends JFrame {
         try {
             idiomaFrame.setSelected(true);
         } catch (java.beans.PropertyVetoException e) {
-            e.printStackTrace();
+            System.err.println("No se pudo seleccionar la ventana: " + e.getMessage());
         }
     }
 
@@ -281,7 +284,7 @@ public class MainFrame extends JFrame {
                 try {
                     frame.setSelected(true);
                 } catch (java.beans.PropertyVetoException e) {
-                    e.printStackTrace();
+                    System.err.println("No se pudo seleccionar la ventana: " + e.getMessage());
                 }
                 return;
             }
@@ -293,7 +296,7 @@ public class MainFrame extends JFrame {
         try {
             epocaFrame.setSelected(true);
         } catch (java.beans.PropertyVetoException e) {
-            e.printStackTrace();
+            System.err.println("No se pudo seleccionar la ventana: " + e.getMessage());
         }
     }
 
@@ -303,7 +306,7 @@ public class MainFrame extends JFrame {
                 try {
                     frame.setSelected(true);
                 } catch (java.beans.PropertyVetoException e) {
-                    e.printStackTrace();
+                    System.err.println("No se pudo seleccionar la ventana: " + e.getMessage());
                 }
                 return;
             }
@@ -315,7 +318,7 @@ public class MainFrame extends JFrame {
         try {
             paisFrame.setSelected(true);
         } catch (java.beans.PropertyVetoException e) {
-            e.printStackTrace();
+            System.err.println("No se pudo seleccionar la ventana: " + e.getMessage());
         }
     }
 
@@ -325,7 +328,7 @@ public class MainFrame extends JFrame {
                 try {
                     frame.setSelected(true);
                 } catch (java.beans.PropertyVetoException e) {
-                    e.printStackTrace();
+                    System.err.println("No se pudo seleccionar la ventana: " + e.getMessage());
                 }
                 return;
             }
@@ -337,7 +340,7 @@ public class MainFrame extends JFrame {
         try {
             escalaFrame.setSelected(true);
         } catch (java.beans.PropertyVetoException e) {
-            e.printStackTrace();
+            System.err.println("No se pudo seleccionar la ventana: " + e.getMessage());
         }
     }
 
@@ -347,7 +350,7 @@ public class MainFrame extends JFrame {
                 try {
                     frame.setSelected(true);
                 } catch (java.beans.PropertyVetoException e) {
-                    e.printStackTrace();
+                    System.err.println("No se pudo seleccionar la ventana: " + e.getMessage());
                 }
                 return;
             }
@@ -359,7 +362,7 @@ public class MainFrame extends JFrame {
         try {
             tipoVehiculoFrame.setSelected(true);
         } catch (java.beans.PropertyVetoException e) {
-            e.printStackTrace();
+            System.err.println("No se pudo seleccionar la ventana: " + e.getMessage());
         }
     }
 
@@ -369,7 +372,7 @@ public class MainFrame extends JFrame {
                 try {
                     frame.setSelected(true);
                 } catch (java.beans.PropertyVetoException e) {
-                    e.printStackTrace();
+                    System.err.println("No se pudo seleccionar la ventana: " + e.getMessage());
                 }
                 return;
             }
@@ -381,7 +384,7 @@ public class MainFrame extends JFrame {
         try {
             operadoraFrame.setSelected(true);
         } catch (java.beans.PropertyVetoException e) {
-            e.printStackTrace();
+            System.err.println("No se pudo seleccionar la ventana: " + e.getMessage());
         }
     }
 
@@ -391,7 +394,7 @@ public class MainFrame extends JFrame {
                 try {
                     frame.setSelected(true);
                 } catch (java.beans.PropertyVetoException e) {
-                    e.printStackTrace();
+                    System.err.println("No se pudo seleccionar la ventana: " + e.getMessage());
                 }
                 return;
             }
@@ -403,7 +406,7 @@ public class MainFrame extends JFrame {
         try {
             esquemaFrame.setSelected(true);
         } catch (java.beans.PropertyVetoException e) {
-            e.printStackTrace();
+            System.err.println("No se pudo seleccionar la ventana: " + e.getMessage());
         }
     }
 
@@ -413,7 +416,7 @@ public class MainFrame extends JFrame {
                 try {
                     frame.setSelected(true);
                 } catch (java.beans.PropertyVetoException e) {
-                    e.printStackTrace();
+                    System.err.println("No se pudo seleccionar la ventana: " + e.getMessage());
                 }
                 return;
             }
@@ -425,7 +428,7 @@ public class MainFrame extends JFrame {
         try {
             fabricanteFrame.setSelected(true);
         } catch (java.beans.PropertyVetoException e) {
-            e.printStackTrace();
+            System.err.println("No se pudo seleccionar la ventana: " + e.getMessage());
         }
     }
 
@@ -435,7 +438,7 @@ public class MainFrame extends JFrame {
                 try {
                     frame.setSelected(true);
                 } catch (java.beans.PropertyVetoException e) {
-                    e.printStackTrace();
+                    System.err.println("No se pudo seleccionar la ventana: " + e.getMessage());
                 }
                 return;
             }
@@ -447,7 +450,7 @@ public class MainFrame extends JFrame {
         try {
             tipoModeloFrame.setSelected(true);
         } catch (java.beans.PropertyVetoException e) {
-            e.printStackTrace();
+            System.err.println("No se pudo seleccionar la ventana: " + e.getMessage());
         }
     }
 
@@ -457,7 +460,7 @@ public class MainFrame extends JFrame {
                 try {
                     frame.setSelected(true);
                 } catch (java.beans.PropertyVetoException e) {
-                    e.printStackTrace();
+                    System.err.println("No se pudo seleccionar la ventana: " + e.getMessage());
                 }
                 return;
             }
@@ -469,7 +472,7 @@ public class MainFrame extends JFrame {
         try {
             vehiculoFrame.setSelected(true);
         } catch (java.beans.PropertyVetoException e) {
-            e.printStackTrace();
+            System.err.println("No se pudo seleccionar la ventana: " + e.getMessage());
         }
     }
 
@@ -479,7 +482,7 @@ public class MainFrame extends JFrame {
                 try {
                     frame.setSelected(true);
                 } catch (java.beans.PropertyVetoException e) {
-                    e.printStackTrace();
+                    System.err.println("No se pudo seleccionar la ventana: " + e.getMessage());
                 }
                 return;
             }
@@ -491,7 +494,7 @@ public class MainFrame extends JFrame {
         try {
             refFrame.setSelected(true);
         } catch (java.beans.PropertyVetoException e) {
-            e.printStackTrace();
+            System.err.println("No se pudo seleccionar la ventana: " + e.getMessage());
         }
     }
 
@@ -501,7 +504,7 @@ public class MainFrame extends JFrame {
                 try {
                     frame.setSelected(true);
                 } catch (java.beans.PropertyVetoException e) {
-                    e.printStackTrace();
+                    System.err.println("No se pudo seleccionar la ventana: " + e.getMessage());
                 }
                 return;
             }
@@ -513,7 +516,7 @@ public class MainFrame extends JFrame {
         try {
             decoderFrame.setSelected(true);
         } catch (java.beans.PropertyVetoException e) {
-            e.printStackTrace();
+            System.err.println("No se pudo seleccionar la ventana: " + e.getMessage());
         }
     }
 
@@ -523,7 +526,7 @@ public class MainFrame extends JFrame {
                 try {
                     frame.setSelected(true);
                 } catch (java.beans.PropertyVetoException e) {
-                    e.printStackTrace();
+                    System.err.println("No se pudo seleccionar la ventana: " + e.getMessage());
                 }
                 return;
             }
@@ -535,7 +538,7 @@ public class MainFrame extends JFrame {
         try {
             duenoFrame.setSelected(true);
         } catch (java.beans.PropertyVetoException e) {
-            e.printStackTrace();
+            System.err.println("No se pudo seleccionar la ventana: " + e.getMessage());
         }
     }
 
@@ -546,7 +549,7 @@ public class MainFrame extends JFrame {
                     frame.setSelected(true);
                     frame.setMaximum(true); // Se maximiza si ya está abierta
                 } catch (PropertyVetoException e) {
-                    e.printStackTrace();
+                    System.err.println("No se pudo maximizar la ventana: " + e.getMessage());
                 }
                 return;
             }
@@ -559,7 +562,7 @@ public class MainFrame extends JFrame {
             modeloFrame.setSelected(true);
             modeloFrame.setMaximum(true); // Se maximiza al abrirla por primera vez
         } catch (PropertyVetoException e) {
-            e.printStackTrace();
+            System.err.println("No se pudo maximizar la ventana: " + e.getMessage());
         }
     }
 }

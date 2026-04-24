@@ -77,7 +77,7 @@ public class ListadoLocomotorasFrame extends JInternalFrame implements LanguageC
         sorter = new TableRowSorter<>(tableModel);
         table.setRowSorter(sorter);
 
-        // Ordenar por defecto por "Dir. Decoder" ascendente
+        // Ordenar por defecto por "Dir. Decoder" ascendente (Compatible con Java 8+)
         List<RowSorter.SortKey> sortKeys = new ArrayList<>();
         sortKeys.add(new RowSorter.SortKey(0, SortOrder.ASCENDING));
         sorter.setSortKeys(sortKeys);

@@ -126,8 +126,6 @@ public class TipoVehiculoInternalFrame extends JInternalFrame implements Languag
             int modelRow = table.convertRowIndexToModel(selectedRow);
             int id = (int) tableModel.getValueAt(modelRow, 0);
             tipoVehiculoService.obtenerTipoVehiculoPorId(id).ifPresent(this::abrirDialogo);
-        } else {
-            // No mostrar mensaje si no hay selección (doble clic en vacío)
         }
     }
 
