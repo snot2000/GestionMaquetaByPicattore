@@ -92,6 +92,13 @@ public class MainFrame extends JFrame {
     private void crearMenu() {
         JMenuBar menuBar = new JMenuBar();
 
+        // Menú Listados
+        JMenu menuListados = new JMenu("Listados");
+        JMenuItem itemListadoLocomotoras = new JMenuItem("Locomotoras por CV");
+        itemListadoLocomotoras.addActionListener(e -> abrirVentanaListadoLocomotoras());
+        menuListados.add(itemListadoLocomotoras);
+        menuBar.add(menuListados);
+
         // Menú Material Real
         JMenu menuMaterialReal = new JMenu("Material Real");
         JMenuItem itemModelos = new JMenuItem("Modelos");
@@ -216,6 +223,34 @@ public class MainFrame extends JFrame {
             }
         }
         actualizarMenuIdiomas();
+    }
+
+    private void abrirVentanaListadoLocomotoras() {
+        for (JInternalFrame frame : desktopPane.getAllFrames()) {
+            if (frame instanceof ListadoLocomotorasFrame) {
+                try {
+                    frame.setSelected(true);
+                    frame.setMaximum(true);
+                } catch (PropertyVetoException e) {
+                    e.printStackTrace();
+                }
+                return;
+            }
+        }
+
+        ListadoLocomotorasFrame listadoFrame = new ListadoLocomotorasFrame(
+            modeloService, decoderService, referenciaModeloService, duenoService, 
+            fabricanteService, vehiculoRealService, tipoVehiculoService, paisService, 
+            epocaService, esquemaPinturaService, operadoraService, idiomaService
+        );
+        desktopPane.add(listadoFrame);
+        listadoFrame.setVisible(true);
+        try {
+            listadoFrame.setSelected(true);
+            listadoFrame.setMaximum(true);
+        } catch (PropertyVetoException e) {
+            e.printStackTrace();
+        }
     }
 
     private void abrirVentanaIdiomas() {

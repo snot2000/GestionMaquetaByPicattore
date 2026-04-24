@@ -94,6 +94,31 @@ public class ListadoLocomotorasFrame extends JInternalFrame implements LanguageC
         int idIdiomaPrincipal = idiomaPrincipalOpt.map(Idioma::getId).orElse(-1);
 
         for (Modelo m : modelos) {
+            boolean esTraccion = false;
+            
+            // Primero, comprobamos si el modelo está asociado a un vehículo real con tracción
+            if (m.getIdReferenciaModelo() != null) {
+                Optional<ReferenciaModelo> refOpt = referenciaModeloService.obtenerReferenciaPorId(m.getIdReferenciaModelo());
+                if (refOpt.isPresent()) {
+                    ReferenciaModelo ref = refOpt.get();
+                    if (ref.getIdVehiculoReal() != null) {
+                        Optional<VehiculoReal> vrOpt = vehiculoRealService.obtenerVehiculoRealPorId(ref.getIdVehiculoReal());
+                        if (vrOpt.isPresent()) {
+                            VehiculoReal vr = vrOpt.get();
+                            if (vr.getIdTipoVehiculo() != null) {
+                                Optional<TipoVehiculo> tipoOpt = tipoVehiculoService.obtenerTipoVehiculoPorId(vr.getIdTipoVehiculo());
+                                if (tipoOpt.isPresent() && tipoOpt.get().isTraccion()) {
+                                    esTraccion = true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Si no tiene tracción, nos saltamos este modelo y no lo mostramos en la tabla
+            if (!esTraccion) continue;
+
             String nombreDueno = "N/A";
             if (m.getIdDueno() != null) {
                 nombreDueno = duenoService.obtenerDuenoPorId(m.getIdDueno()).map(Dueno::getNombre).orElse("Desconocido");

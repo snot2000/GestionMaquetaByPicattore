@@ -13,12 +13,13 @@ public class SqliteTipoVehiculoRepository implements TipoVehiculoRepository {
 
     @Override
     public void guardar(TipoVehiculo tipoVehiculo) {
-        String sql = "INSERT INTO Tipo_vehiculo(codigo) VALUES(?)";
+        String sql = "INSERT INTO Tipo_vehiculo(codigo, traccion) VALUES(?, ?)";
 
         try (Connection conn = Database.conectar();
              PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             
             pstmt.setString(1, tipoVehiculo.getCodigo());
+            pstmt.setInt(2, tipoVehiculo.isTraccion() ? 1 : 0);
             pstmt.executeUpdate();
 
             try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
@@ -48,7 +49,7 @@ public class SqliteTipoVehiculoRepository implements TipoVehiculoRepository {
 
     @Override
     public Optional<TipoVehiculo> buscarPorId(int id) {
-        String sql = "SELECT id_tipo_vehiculo, codigo FROM Tipo_vehiculo WHERE id_tipo_vehiculo = ?";
+        String sql = "SELECT id_tipo_vehiculo, codigo, traccion FROM Tipo_vehiculo WHERE id_tipo_vehiculo = ?";
         TipoVehiculo tipoVehiculo = null;
 
         try (Connection conn = Database.conectar();
@@ -57,9 +58,13 @@ public class SqliteTipoVehiculoRepository implements TipoVehiculoRepository {
             ResultSet rs = pstmt.executeQuery();
 
             if (rs.next()) {
+                int traccionVal = rs.getInt("traccion");
+                boolean traccion = traccionVal == 1;
+                
                 tipoVehiculo = new TipoVehiculo(
                         rs.getInt("id_tipo_vehiculo"),
-                        rs.getString("codigo")
+                        rs.getString("codigo"),
+                        traccion
                 );
                 cargarTraducciones(tipoVehiculo, conn);
             }
@@ -89,7 +94,7 @@ public class SqliteTipoVehiculoRepository implements TipoVehiculoRepository {
 
     @Override
     public List<TipoVehiculo> buscarTodos() {
-        String sql = "SELECT id_tipo_vehiculo, codigo FROM Tipo_vehiculo";
+        String sql = "SELECT id_tipo_vehiculo, codigo, traccion FROM Tipo_vehiculo";
         List<TipoVehiculo> lista = new ArrayList<>();
 
         try (Connection conn = Database.conectar();
@@ -97,9 +102,13 @@ public class SqliteTipoVehiculoRepository implements TipoVehiculoRepository {
              ResultSet rs = stmt.executeQuery(sql)) {
 
             while (rs.next()) {
+                int traccionVal = rs.getInt("traccion");
+                boolean traccion = traccionVal == 1;
+                
                 TipoVehiculo tipoVehiculo = new TipoVehiculo(
                         rs.getInt("id_tipo_vehiculo"),
-                        rs.getString("codigo")
+                        rs.getString("codigo"),
+                        traccion
                 );
                 cargarTraducciones(tipoVehiculo, conn);
                 lista.add(tipoVehiculo);
@@ -112,13 +121,14 @@ public class SqliteTipoVehiculoRepository implements TipoVehiculoRepository {
 
     @Override
     public void actualizar(TipoVehiculo tipoVehiculo) {
-        String sql = "UPDATE Tipo_vehiculo SET codigo = ? WHERE id_tipo_vehiculo = ?";
+        String sql = "UPDATE Tipo_vehiculo SET codigo = ?, traccion = ? WHERE id_tipo_vehiculo = ?";
 
         try (Connection conn = Database.conectar()) {
             conn.setAutoCommit(false);
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setString(1, tipoVehiculo.getCodigo());
-                pstmt.setInt(2, tipoVehiculo.getIdTipoVehiculo());
+                pstmt.setInt(2, tipoVehiculo.isTraccion() ? 1 : 0);
+                pstmt.setInt(3, tipoVehiculo.getIdTipoVehiculo());
                 pstmt.executeUpdate();
 
                 eliminarTraducciones(tipoVehiculo.getIdTipoVehiculo(), conn);

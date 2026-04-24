@@ -14,8 +14,8 @@ public class TipoVehiculoService {
         this.tipoVehiculoRepository = tipoVehiculoRepository;
     }
 
-    public void crearTipoVehiculo(String codigo, List<TipoVehiculoTr> traducciones) {
-        TipoVehiculo nuevoTipo = new TipoVehiculo(codigo);
+    public void crearTipoVehiculo(String codigo, boolean traccion, List<TipoVehiculoTr> traducciones) {
+        TipoVehiculo nuevoTipo = new TipoVehiculo(codigo, traccion);
         nuevoTipo.setTraducciones(traducciones);
         tipoVehiculoRepository.guardar(nuevoTipo);
     }
@@ -28,11 +28,12 @@ public class TipoVehiculoService {
         return tipoVehiculoRepository.buscarPorId(id);
     }
 
-    public void actualizarTipoVehiculo(int id, String codigo, List<TipoVehiculoTr> traducciones) {
+    public void actualizarTipoVehiculo(int id, String codigo, boolean traccion, List<TipoVehiculoTr> traducciones) {
         Optional<TipoVehiculo> tipoExistente = tipoVehiculoRepository.buscarPorId(id);
         if (tipoExistente.isPresent()) {
             TipoVehiculo tipo = tipoExistente.get();
             tipo.setCodigo(codigo);
+            tipo.setTraccion(traccion);
             tipo.setTraducciones(traducciones);
             tipoVehiculoRepository.actualizar(tipo);
         } else {

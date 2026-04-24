@@ -34,11 +34,16 @@ public class TipoVehiculoInternalFrame extends JInternalFrame implements Languag
 
     private void inicializarComponentes() {
         // Tabla
-        String[] columnNames = {"ID", "Código", "Nombre", "Descripción"};
+        String[] columnNames = {"ID", "Código", "Tracción", "Nombre", "Descripción"};
         tableModel = new DefaultTableModel(columnNames, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
+            }
+            @Override
+            public Class<?> getColumnClass(int columnIndex) {
+                if (columnIndex == 2) return Boolean.class;
+                return super.getColumnClass(columnIndex);
             }
         };
         table = new JTable(tableModel);
@@ -101,6 +106,7 @@ public class TipoVehiculoInternalFrame extends JInternalFrame implements Languag
             tableModel.addRow(new Object[]{
                     tipo.getIdTipoVehiculo(), 
                     tipo.getCodigo(),
+                    tipo.isTraccion(),
                     nombre,
                     descripcion
             });

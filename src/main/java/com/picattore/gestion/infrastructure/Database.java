@@ -80,7 +80,10 @@ public class Database {
             // Tabla Tipo_vehiculo
             stmt.execute("CREATE TABLE IF NOT EXISTS Tipo_vehiculo (" +
                     "id_tipo_vehiculo INTEGER PRIMARY KEY, " +
-                    "codigo TEXT)");
+                    "codigo TEXT, " +
+                    "traccion INTEGER)");
+                    
+            try { stmt.execute("ALTER TABLE Tipo_vehiculo ADD COLUMN traccion INTEGER"); } catch (Exception e) { }
 
             stmt.execute("CREATE TABLE IF NOT EXISTS Tipo_vehiculo_tr (" +
                     "id INTEGER PRIMARY KEY, " +

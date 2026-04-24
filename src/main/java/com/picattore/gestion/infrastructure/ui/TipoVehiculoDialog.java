@@ -19,6 +19,7 @@ public class TipoVehiculoDialog extends JDialog {
     private final TipoVehiculo tipoVehiculoExistente;
 
     private JTextField txtCodigo;
+    private JCheckBox chkTraccion;
     private JTable tableTraducciones;
     private DefaultTableModel tableModel;
 
@@ -37,10 +38,16 @@ public class TipoVehiculoDialog extends JDialog {
 
     private void inicializarComponentes() {
         // Panel de datos generales
-        JPanel panelDatos = new JPanel(new GridLayout(1, 2));
+        JPanel panelDatos = new JPanel(new GridLayout(2, 2, 5, 5));
+        panelDatos.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        
         panelDatos.add(new JLabel("Código:"));
         txtCodigo = new JTextField();
         panelDatos.add(txtCodigo);
+
+        panelDatos.add(new JLabel("Tracción:"));
+        chkTraccion = new JCheckBox("Sí");
+        panelDatos.add(chkTraccion);
 
         this.add(panelDatos, BorderLayout.NORTH);
 
@@ -79,6 +86,7 @@ public class TipoVehiculoDialog extends JDialog {
 
         if (tipoVehiculoExistente != null) {
             txtCodigo.setText(tipoVehiculoExistente.getCodigo());
+            chkTraccion.setSelected(tipoVehiculoExistente.isTraccion());
 
             for (Idioma idioma : idiomas) {
                 String nombre = "";
@@ -105,6 +113,7 @@ public class TipoVehiculoDialog extends JDialog {
         }
 
         String codigo = txtCodigo.getText();
+        boolean traccion = chkTraccion.isSelected();
 
         if (codigo.isEmpty()) {
             JOptionPane.showMessageDialog(this, "El código es obligatorio.", "Error", JOptionPane.ERROR_MESSAGE);
@@ -124,9 +133,9 @@ public class TipoVehiculoDialog extends JDialog {
         }
 
         if (tipoVehiculoExistente == null) {
-            tipoVehiculoService.crearTipoVehiculo(codigo, traducciones);
+            tipoVehiculoService.crearTipoVehiculo(codigo, traccion, traducciones);
         } else {
-            tipoVehiculoService.actualizarTipoVehiculo(tipoVehiculoExistente.getIdTipoVehiculo(), codigo, traducciones);
+            tipoVehiculoService.actualizarTipoVehiculo(tipoVehiculoExistente.getIdTipoVehiculo(), codigo, traccion, traducciones);
         }
 
         dispose();
